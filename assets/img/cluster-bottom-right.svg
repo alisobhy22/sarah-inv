@@ -62,8 +62,9 @@
   <use href="#calla" transform="translate(120 300) scale(1.2) rotate(-50)"/>
   <use href="#calla" transform="translate(330 300) scale(1.0) rotate(30)"/>
 
-  <!-- anthurium -->
-  <use href="#anthurium" transform="translate(300 180) scale(1.6) rotate(15)"/>
+  <!-- anthurium, tucked into the gap between the input (below, at mobile widths)
+       and the input (above, at desktop widths) so it clears the form field either way -->
+  <use href="#anthurium" transform="translate(310 115) scale(1.1) rotate(15)"/>
 
   <!-- orchids, the focal blooms, mirroring the top-left weight -->
   <use href="#orchid" transform="translate(260 280) scale(1.7)"/>
