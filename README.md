@@ -12,7 +12,20 @@ the RSVP endpoint URL, the Google Maps link, the event date, and the
 WhatsApp fallback number. (Setup steps are in later sections.)
 
 ## Google Sheet setup
-(Filled in by Task 4.)
+1. Create a Google Sheet named **Engagement RSVPs** with two tabs:
+   - **Guests** — header row `GroupID | Full Name | Group Label`, then one
+     row per invited person. Everyone sharing a GroupID answers together.
+     Example: `g001 | Ahmed Kamal | The Kamal Family`.
+   - **RSVPs** — header row
+     `Timestamp | Updated At | GroupID | Group Label | Members | Party Size | Attending | Submitted By`.
+     Leave the rest empty; the website writes here.
+2. In the Sheet: **Extensions → Apps Script**. Create two files, paste in
+   `google-apps-script/Code.gs` and `google-apps-script/Lib.gs`. In
+   `Code.gs`, set `SHEET_ID` to the long id from the Sheet's URL.
+3. **Deploy → New deployment → Web app** — Execute as **Me**, access
+   **Anyone**. Copy the deployment URL into `appsScriptUrl` in
+   `assets/js/config.js`.
+4. To change the guest list later, just edit the Guests tab. No redeploy.
 
 ## Deploying
 (Filled in by Task 9.)
