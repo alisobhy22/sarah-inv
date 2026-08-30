@@ -1,0 +1,38 @@
+/* ── Tokens ─────────────────────────────────────────────────────── */
+:root {
+  --paper: #F4EDE6;
+  --paper-raised: #FAF6F1;
+  --olive: #6A7A42;
+  --olive-light: #8A9A5B;
+  --ink: #45502C;
+  --rose: #C75B77;
+  --rose-soft: #E9A9BC;
+  --magenta: #BE3D6B;
+  --plum: #7A5A6B; /* reserved */
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-body: "EB Garamond", Georgia, serif;
+  --font-script: "Great Vibes", cursive;
+}
+
+/* ── Ground ─────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Paper grain: generated turbulence, zero image weight. */
+.texture {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.44 0 0 0 0 0.36 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
