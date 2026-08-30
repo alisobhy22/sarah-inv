@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 520" aria-hidden="true">
-  <defs>
+  <defs><radialGradient id="gPink" cx="50%" cy="38%" r="72%"><stop offset="0%" stop-color="#F5D0DC"/><stop offset="55%" stop-color="#E9A9BC"/><stop offset="100%" stop-color="#D07E97"/></radialGradient><radialGradient id="gPale" cx="50%" cy="35%" r="75%"><stop offset="0%" stop-color="#F8E0E8"/><stop offset="60%" stop-color="#F0C3D0"/><stop offset="100%" stop-color="#DE9DB4"/></radialGradient><radialGradient id="gRose" cx="45%" cy="35%" r="75%"><stop offset="0%" stop-color="#D9718C"/><stop offset="100%" stop-color="#B44467"/></radialGradient><linearGradient id="gLeaf" x1="0" y1="0" x2="0.8" y2="1"><stop offset="0%" stop-color="#9CAC6E"/><stop offset="100%" stop-color="#79894C"/></linearGradient>
     <filter id="wc" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="0.6"/>
     </filter>
     <g id="amaranthus">
       <path d="M0 0 C 2 24, -2 46, 1 70" stroke="#8A9A5B" stroke-width="1.6" fill="none"/>
-      <g fill="#8A9A5B" opacity="0.75">
+      <g fill="url(#gLeaf)" opacity="0.75">
         <circle cx="-2" cy="8" r="2.6"/><circle cx="3" cy="14" r="2.6"/><circle cx="-1" cy="21" r="2.6"/>
         <circle cx="2" cy="28" r="2.4"/><circle cx="-2" cy="35" r="2.4"/><circle cx="2" cy="42" r="2.2"/>
         <circle cx="-1" cy="49" r="2.2"/><circle cx="1" cy="56" r="2"/><circle cx="0" cy="63" r="1.8"/>
       </g>
     </g>
     <g id="leaf">
-      <path d="M0 0 C 8 -4, 16 -2, 20 6 C 12 10, 4 8, 0 0 Z" fill="#8A9A5B" opacity="0.8" filter="url(#wc)"/>
+      <path d="M0 0 C 8 -4, 16 -2, 20 6 C 12 10, 4 8, 0 0 Z" fill="url(#gLeaf)" opacity="0.8" filter="url(#wc)"/>
     </g>
   </defs>
 

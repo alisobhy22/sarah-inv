@@ -302,3 +302,33 @@ html.motion .orchid.bloomed .orchid-heart { transition-delay: 0.36s; }
   opacity: 0.3;
   border-radius: 20% 80% 30% 70% / 40% 60% 40% 70%;
 }
+
+/* ── Ambient life layer ─────────────────────────────────────────── */
+.hero { overflow: hidden; }
+.hero-inner { position: relative; z-index: 2; }
+.petal-fall {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 17px;
+  background: var(--rose-soft);
+  border-radius: 80% 20% 70% 30% / 60% 40% 70% 40%;
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform;
+}
+.petal-fall.alt { background: var(--rose); opacity: 0.38; }
+
+/* Hero hairlines grow outward as they reveal (motion mode only). */
+html.motion .hero .rule { transform: translateY(24px) scaleX(0.12); }
+
+/* Gentle lift on interactive things. */
+.button, .choice-card {
+  transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+.button:hover { transform: translateY(-2px); }
+.choice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--ink) 35%, transparent);
+}

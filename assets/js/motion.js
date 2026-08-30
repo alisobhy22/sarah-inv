@@ -110,7 +110,8 @@
       .to('.hero .cluster', { opacity: 1, duration: 1.2 }, '-=0.4')
       .from('.cluster-tl', { xPercent: 18, yPercent: 12, rotation: 8, duration: 1.4 }, '<')
       .from('.cluster-r', { xPercent: 24, rotation: -6, duration: 1.4 }, '<')
-      .to('.hero [data-reveal]', { opacity: 1, y: 0, stagger: 0.12, duration: 0.8 }, '-=0.8');
+      .to('.hero [data-reveal]', { opacity: 1, y: 0, stagger: 0.12, duration: 0.8 }, '-=0.8')
+      .to('.hero .rule', { scaleX: 1, stagger: 0.1, duration: 0.7, ease: 'power2.out' }, '-=0.9');
   }
   wireHeroEntrance();
 
@@ -122,6 +123,7 @@
     gsap.set('.cluster-tl', { xPercent: 0, yPercent: 0, rotation: 0 });
     gsap.set('.cluster-r', { xPercent: 0, rotation: 0 });
     gsap.set('.hero [data-reveal]', { opacity: 1, y: 0 });
+    gsap.set('.hero .rule', { scaleX: 1 });
   }
 
   // ── Parallax: background botanicals drift at their own speeds ──
@@ -129,22 +131,59 @@
   // the flora reads as a layer floating behind the paper. All widths —
   // it's transform-only, cheap enough for phones.
   var PARALLAX = [
-    { sel: '.cluster-tl', y: -14, r: -4, trig: '#names', start: 'top top' },
-    { sel: '.cluster-r', y: -26, r: 3, trig: '#names', start: 'top top' },
-    { sel: '.cluster-hang', y: 30, r: 2, trig: '#interlude', start: 'top bottom' },
-    { sel: '.cluster-br', y: -18, r: -3, trig: '#rsvp', start: 'top bottom' }
+    { sel: '.cluster-tl', y: -14, trig: '#names', start: 'top top' },
+    { sel: '.cluster-r', y: -26, trig: '#names', start: 'top top' },
+    { sel: '.cluster-hang', y: 30, trig: '#interlude', start: 'top bottom' },
+    { sel: '.cluster-br', y: -18, trig: '#rsvp', start: 'top bottom' }
   ];
   function wireParallax() {
     PARALLAX.forEach(function (p) {
       var el = document.querySelector(p.sel);
       if (!el) return;
       gsap.to(el, {
-        yPercent: p.y, rotation: p.r, ease: 'none',
+        yPercent: p.y, ease: 'none',
         scrollTrigger: { trigger: p.trig, start: p.start, end: 'bottom top', scrub: 0.8 }
       });
     });
   }
   wireParallax();
+
+  // ── Breeze: clusters rock gently around their stem point, forever.
+  // Rotation is reserved for this (parallax uses yPercent only), so the
+  // two never fight over the same transform channel. Starts after the
+  // hero entrance has fully settled.
+  gsap.utils.toArray('.cluster').forEach(function (el, i) {
+    gsap.to(el, {
+      rotation: i % 2 ? 1.8 : -1.8,
+      transformOrigin: '50% 0%',
+      duration: 6 + i * 1.5,
+      delay: 3,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true
+    });
+  });
+
+  // ── Falling petals: a slow, endless drift down the hero only.
+  (function heroPetals() {
+    var hero = document.getElementById('names');
+    for (var i = 0; i < 7; i++) {
+      var p = document.createElement('div');
+      p.className = 'petal-fall' + (i % 2 ? ' alt' : '');
+      p.style.left = (5 + (i * 13) % 90) + '%';
+      hero.appendChild(p);
+      gsap.set(p, { y: -40, rotation: i * 40 });
+      gsap.to(p, {
+        y: hero.offsetHeight + 60,
+        x: (i % 2 ? '+=' : '-=') + (40 + i * 10),
+        rotation: '+=' + (140 + i * 30),
+        duration: 10 + (i % 4) * 3,
+        delay: i * 1.7,
+        ease: 'none',
+        repeat: -1
+      });
+    }
+  })();
 
   // ── Floating petals: a sparse background layer that drifts as the
   // guest scrolls. Deterministic scatter (no flicker between rebuilds),
@@ -184,6 +223,16 @@
         opacity: 1, y: 0, duration: 0.9, ease: 'power2.out',
         scrollTrigger: { trigger: el, start: 'top 82%' }
       });
+    });
+
+    // Map moment: the pin drops in with a bounce, the route fades after.
+    gsap.from('.map-pin-group', {
+      y: -36, opacity: 0, duration: 0.8, ease: 'bounce.out',
+      scrollTrigger: { trigger: '#location', start: 'top 65%' }
+    });
+    gsap.from('.map-route', {
+      opacity: 0, duration: 1.2, delay: 0.5,
+      scrollTrigger: { trigger: '#location', start: 'top 65%' }
     });
   }
   wireReveals();
