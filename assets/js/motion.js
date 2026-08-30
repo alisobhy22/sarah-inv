@@ -81,35 +81,69 @@
     });
   }
   buildVine();
+
+  // Mobile browsers collapse/expand their URL bar while the guest scrolls,
+  // which fires `resize` with the viewport HEIGHT changed but the WIDTH
+  // unchanged. That must be a complete no-op — only a genuine width change
+  // (breakpoint crossing / orientation change) warrants tearing down and
+  // rebuilding the scroll-driven triggers. Otherwise, on WhatsApp in-app
+  // browsers (the primary platform here), every URL-bar wobble mid-scroll
+  // would retrigger the vine rebuild and — without the fix below — replay
+  // the hero entrance while the guest is reading.
+  var lastWidth = document.documentElement.clientWidth;
   var resizeTimer;
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
+      var w = document.documentElement.clientWidth;
+      if (w === lastWidth) return; // height-only (URL bar) resize — ignore
+      lastWidth = w;
       ScrollTrigger.getAll().forEach(function (st) { st.kill(); });
+      setHeroFinal();
       buildVine();
       wireReveals();
-      wireHero();
+      wireHeroParallax();
       ScrollTrigger.refresh();
     }, 250);
   });
 
-  // ── Hero: bouquet unfold ──────────────────────────────────────
-  function wireHero() {
+  // ── Hero: bouquet unfold (plays exactly once, on load) ─────────
+  function wireHeroEntrance() {
     var tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
     tl.from('.monogram .mono-letter', { opacity: 0, y: 10, stagger: 0.2, duration: 0.9 })
       .to('.hero .cluster', { opacity: 1, duration: 1.2 }, '-=0.4')
       .from('.cluster-tl', { xPercent: 18, yPercent: 12, rotation: 8, duration: 1.4 }, '<')
       .from('.cluster-r', { xPercent: 24, rotation: -6, duration: 1.4 }, '<')
       .to('.hero [data-reveal]', { opacity: 1, y: 0, stagger: 0.12, duration: 0.8 }, '-=0.8');
-    // Desktop only: gentle parallax retreat of the clusters as you leave.
-    gsap.matchMedia().add('(min-width: 900px)', function () {
+  }
+  wireHeroEntrance();
+
+  // Pins the hero elements at their settled, fully-revealed state. Used
+  // on a width-change rebuild so the one-time entrance never replays.
+  function setHeroFinal() {
+    gsap.set('.monogram .mono-letter', { opacity: 1, y: 0 });
+    gsap.set('.hero .cluster', { opacity: 1 });
+    gsap.set('.cluster-tl', { xPercent: 0, yPercent: 0, rotation: 0 });
+    gsap.set('.cluster-r', { xPercent: 0, rotation: 0 });
+    gsap.set('.hero [data-reveal]', { opacity: 1, y: 0 });
+  }
+
+  // Desktop only: gentle parallax retreat of the top-left cluster as you
+  // leave the hero. Re-wired (never replayed) on a width-change rebuild;
+  // reverts its own previous matchMedia instance first so repeated
+  // rebuilds don't leave stale media-query listeners piling up.
+  var heroParallaxMM;
+  function wireHeroParallax() {
+    if (heroParallaxMM) heroParallaxMM.revert();
+    heroParallaxMM = gsap.matchMedia();
+    heroParallaxMM.add('(min-width: 900px)', function () {
       gsap.to('.cluster-tl', {
         yPercent: -12, ease: 'none',
         scrollTrigger: { trigger: '#names', start: 'top top', end: 'bottom top', scrub: true }
       });
     });
   }
-  wireHero();
+  wireHeroParallax();
 
   // ── Section reveals ───────────────────────────────────────────
   function wireReveals() {
