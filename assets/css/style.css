@@ -47,7 +47,7 @@ main { position: relative; z-index: 2; }
   text-align: center;
 }
 .hero { min-height: 100svh; display: flex; align-items: center; justify-content: center; padding-top: 6rem; }
-.interlude { min-height: 55svh; }
+.interlude { min-height: 26svh; padding-top: 2rem; padding-bottom: 2rem; }
 .closing { padding-bottom: 7rem; }
 
 /* ── Typography ─────────────────────────────────────────────────── */
@@ -157,7 +157,7 @@ main { position: relative; z-index: 2; }
 .cluster { position: absolute; pointer-events: none; mix-blend-mode: multiply; z-index: 1; }
 .cluster-tl { top: 0; left: 0; width: min(46vw, 300px); height: auto; }
 .cluster-r { top: 22%; right: 0; width: min(24vw, 180px); height: auto; }
-.cluster-hang { top: 0; left: 4vw; width: min(30vw, 200px); height: auto; position: absolute; }
+.cluster-hang { top: 0; left: 8vw; width: min(42vw, 250px); height: auto; position: absolute; }
 .cluster-br { bottom: -3rem; right: 0; width: min(48vw, 320px); height: auto; }
 
 /* ── Vine ───────────────────────────────────────────────────────── */
@@ -256,3 +256,25 @@ html.motion .orchid.bloomed .orchid-heart { transition-delay: 0.36s; }
 .orchid.bloomed .petal:nth-child(3) { transition-delay: 0.16s; }
 .orchid.bloomed .petal.lip { transition-delay: 0.26s; }
 .orchid.bloomed .orchid-heart { transition-delay: 0.36s; }
+
+/* ── Floating petal layer (created by motion.js, motion mode only) ── */
+.petal-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.petal-float {
+  position: absolute;
+  background: var(--rose-soft);
+  border-radius: 80% 20% 70% 30% / 60% 40% 70% 40%;
+  opacity: 0.5;
+  will-change: transform;
+}
+.petal-float:nth-child(3n) { background: var(--rose); opacity: 0.32; }
+.petal-float:nth-child(4n) {
+  background: var(--olive-light);
+  opacity: 0.3;
+  border-radius: 20% 80% 30% 70% / 40% 60% 40% 70%;
+}

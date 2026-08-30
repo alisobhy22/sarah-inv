@@ -15,13 +15,8 @@
   document.documentElement.classList.add('motion');
   gsap.registerPlugin(ScrollTrigger);
 
-  // Smooth scroll on fine-pointer devices only — never hijack touch.
-  if (typeof Lenis !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
-    var lenis = new Lenis();
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
-    gsap.ticker.lagSmoothing(0);
-  }
+  // Native scrolling only — no smooth-scroll library. ScrollTrigger's
+  // scrub values below give the motion its glide instead.
 
   // ── The vine ──────────────────────────────────────────────────
   var vineSvg = document.getElementById('vine');
@@ -102,7 +97,8 @@
       setHeroFinal();
       buildVine();
       wireReveals();
-      wireHeroParallax();
+      wireParallax();
+      buildPetals();
       ScrollTrigger.refresh();
     }, 250);
   });
@@ -128,22 +124,58 @@
     gsap.set('.hero [data-reveal]', { opacity: 1, y: 0 });
   }
 
-  // Desktop only: gentle parallax retreat of the top-left cluster as you
-  // leave the hero. Re-wired (never replayed) on a width-change rebuild;
-  // reverts its own previous matchMedia instance first so repeated
-  // rebuilds don't leave stale media-query listeners piling up.
-  var heroParallaxMM;
-  function wireHeroParallax() {
-    if (heroParallaxMM) heroParallaxMM.revert();
-    heroParallaxMM = gsap.matchMedia();
-    heroParallaxMM.add('(min-width: 900px)', function () {
-      gsap.to('.cluster-tl', {
-        yPercent: -12, ease: 'none',
-        scrollTrigger: { trigger: '#names', start: 'top top', end: 'bottom top', scrub: true }
+  // ── Parallax: background botanicals drift at their own speeds ──
+  // Every cluster moves slower than the page (scrubbed to scroll), so
+  // the flora reads as a layer floating behind the paper. All widths —
+  // it's transform-only, cheap enough for phones.
+  var PARALLAX = [
+    { sel: '.cluster-tl', y: -14, r: -4, trig: '#names', start: 'top top' },
+    { sel: '.cluster-r', y: -26, r: 3, trig: '#names', start: 'top top' },
+    { sel: '.cluster-hang', y: 30, r: 2, trig: '#interlude', start: 'top bottom' },
+    { sel: '.cluster-br', y: -18, r: -3, trig: '#rsvp', start: 'top bottom' }
+  ];
+  function wireParallax() {
+    PARALLAX.forEach(function (p) {
+      var el = document.querySelector(p.sel);
+      if (!el) return;
+      gsap.to(el, {
+        yPercent: p.y, rotation: p.r, ease: 'none',
+        scrollTrigger: { trigger: p.trig, start: p.start, end: 'bottom top', scrub: 0.8 }
       });
     });
   }
-  wireHeroParallax();
+  wireParallax();
+
+  // ── Floating petals: a sparse background layer that drifts as the
+  // guest scrolls. Deterministic scatter (no flicker between rebuilds),
+  // generated only in motion mode so reduced-motion never sees them.
+  var petalLayer = null;
+  function buildPetals() {
+    if (petalLayer) petalLayer.remove();
+    petalLayer = document.createElement('div');
+    petalLayer.className = 'petal-layer';
+    petalLayer.setAttribute('aria-hidden', 'true');
+    var h = document.documentElement.scrollHeight;
+    var count = 14;
+    for (var i = 0; i < count; i++) {
+      var p = document.createElement('div');
+      p.className = 'petal-float';
+      var size = 9 + (i * 7) % 13;
+      p.style.left = ((i * 61 + 13) % 92) + '%';
+      p.style.top = Math.round(h * (0.06 + 0.88 * (i / count))) + 'px';
+      p.style.width = size + 'px';
+      p.style.height = Math.round(size * 1.4) + 'px';
+      petalLayer.appendChild(p);
+      gsap.to(p, {
+        y: -(110 + (i % 5) * 55),
+        rotation: (i % 2 ? 1 : -1) * (35 + (i * 13) % 45),
+        ease: 'none',
+        scrollTrigger: { trigger: p, start: 'top bottom', end: 'bottom top', scrub: 1.2 }
+      });
+    }
+    document.body.appendChild(petalLayer);
+  }
+  buildPetals();
 
   // ── Section reveals ───────────────────────────────────────────
   function wireReveals() {
