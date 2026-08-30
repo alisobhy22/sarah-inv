@@ -39,4 +39,8 @@ The site ships with drawn florals. To use the invitation's own artwork:
    background of the crops disappear against the page — no cut-outs needed.
 
 ## Deploying
-(Filled in by Task 9.)
+1. Go to https://app.netlify.com/drop and drag this whole folder in.
+2. Netlify gives you a URL — that's the invitation. Rename the site in
+   Site settings for a nicer address (e.g. abdelrahman-and-sarah).
+3. To update: edit files, drag the folder in again.
+4. Send the URL by WhatsApp. Done.
