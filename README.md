@@ -27,5 +27,16 @@ WhatsApp fallback number. (Setup steps are in later sections.)
    `assets/js/config.js`.
 4. To change the guest list later, just edit the Guests tab. No redeploy.
 
+## Swapping in the real invitation artwork
+The site ships with drawn florals. To use the invitation's own artwork:
+1. Get the designer's original (PDF or print-resolution PNG) into
+   `assets/source/` (this folder never uploads).
+2. Crop the four regions — top-left cluster, right climbing vine,
+   hanging amaranthus, bottom-right cluster — and export each as WebP
+   (~1200px on the long side) into `assets/img/`.
+3. In `index.html`, change the four `cluster-*.svg` filenames to the new
+   files. The `mix-blend-mode: multiply` styling makes the cream
+   background of the crops disappear against the page — no cut-outs needed.
+
 ## Deploying
 (Filled in by Task 9.)

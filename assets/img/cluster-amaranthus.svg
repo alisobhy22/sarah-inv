@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 520" aria-hidden="true">
+  <defs>
+    <filter id="wc" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.6"/>
+    </filter>
+    <g id="amaranthus">
+      <path d="M0 0 C 2 24, -2 46, 1 70" stroke="#8A9A5B" stroke-width="1.6" fill="none"/>
+      <g fill="#8A9A5B" opacity="0.75">
+        <circle cx="-2" cy="8" r="2.6"/><circle cx="3" cy="14" r="2.6"/><circle cx="-1" cy="21" r="2.6"/>
+        <circle cx="2" cy="28" r="2.4"/><circle cx="-2" cy="35" r="2.4"/><circle cx="2" cy="42" r="2.2"/>
+        <circle cx="-1" cy="49" r="2.2"/><circle cx="1" cy="56" r="2"/><circle cx="0" cy="63" r="1.8"/>
+      </g>
+    </g>
+    <g id="leaf">
+      <path d="M0 0 C 8 -4, 16 -2, 20 6 C 12 10, 4 8, 0 0 Z" fill="#8A9A5B" opacity="0.8" filter="url(#wc)"/>
+    </g>
+  </defs>
+
+  <!-- two small leaves tucked at the stem bases -->
+  <use href="#leaf" transform="translate(46 4) scale(1.3) rotate(205)"/>
+  <use href="#leaf" transform="translate(182 4) scale(1.15) rotate(-25)"/>
+
+  <!-- three amaranthus strands hanging from the top edge -->
+  <use href="#amaranthus" transform="translate(60 0) scale(2.4)"/>
+  <use href="#amaranthus" transform="translate(120 0) scale(2.0) rotate(4)"/>
+  <use href="#amaranthus" transform="translate(170 0) scale(1.6) rotate(-6)"/>
+</svg>
