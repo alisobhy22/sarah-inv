@@ -234,3 +234,25 @@ main { position: relative; z-index: 2; }
   .cluster-tl { width: min(30vw, 420px); }
   .cluster-br { width: min(34vw, 380px); }
 }
+
+/* ── Motion initial states (only when JS + motion allowed) ─────── */
+html.motion [data-reveal] { opacity: 0; transform: translateY(24px); }
+html.motion .hero .cluster { opacity: 0; }
+html.motion .orchid .petal, html.motion .orchid .orchid-heart {
+  transform-origin: 60px 60px; transform: scale(0);
+}
+/* Controller ruling: scope the bloom rules to html.motion so they win
+   over the html.motion initial-state rule above (equal specificity,
+   later in source order); keep plain .orchid.bloomed variants too so
+   the no-motion path (no html.motion class) still blooms correctly. */
+html.motion .orchid.bloomed .petal, html.motion .orchid.bloomed .orchid-heart { transform: scale(1); transition: transform 0.9s cubic-bezier(.2,.8,.3,1.1); }
+html.motion .orchid.bloomed .petal:nth-child(2) { transition-delay: 0.08s; }
+html.motion .orchid.bloomed .petal:nth-child(3) { transition-delay: 0.16s; }
+html.motion .orchid.bloomed .petal.lip { transition-delay: 0.26s; }
+html.motion .orchid.bloomed .orchid-heart { transition-delay: 0.36s; }
+
+.orchid.bloomed .petal, .orchid.bloomed .orchid-heart { transform: scale(1); transition: transform 0.9s cubic-bezier(.2,.8,.3,1.1); }
+.orchid.bloomed .petal:nth-child(2) { transition-delay: 0.08s; }
+.orchid.bloomed .petal:nth-child(3) { transition-delay: 0.16s; }
+.orchid.bloomed .petal.lip { transition-delay: 0.26s; }
+.orchid.bloomed .orchid-heart { transition-delay: 0.36s; }
