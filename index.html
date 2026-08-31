@@ -46,8 +46,13 @@
        flash of the seal they already broke, and that means deciding before
        the first paint — which a deferred script is far too late for. */
     (function () {
+      /* ?seal forces the closed card back, however many times it has already
+         been opened — for showing someone the opening, or checking it while
+         working on it. A guest never has this on the link they're sent, so
+         for them the seal stays a once-only moment. */
+      var force = /[?&]seal(=|&|$)/.test(location.search);
       try {
-        if (localStorage.getItem('as-invite-opened')) {
+        if (!force && localStorage.getItem('as-invite-opened')) {
           var g = document.getElementById('seal-gate');
           if (g && g.parentNode) g.parentNode.removeChild(g);
           return;
