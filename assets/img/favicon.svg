@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!--
+    The wax seal, not the paper monogram. At 16px the invitation's own
+    monogram — thin olive serif letters on cream — collapses into mud; a
+    saturated disc survives any size, and it's the mark the guest just
+    broke to get in. Colours are the resolved values of the page's
+    color-mix() tokens, since an icon can't reach a stylesheet.
+
+    Letters are <text> with a system serif stack on purpose: a favicon
+    never loads the page's webfont, so Cormorant would silently fall back
+    anyway. Naming the fallback keeps it predictable across platforms.
+  -->
+  <path fill="#A7365E" d="M60 5 C40 3 20 17 12 38 C5 57 9 84 28 100 C44 113 74 116 90 104 C110 89 118 62 111 41 C104 19 82 3 60 5 Z"/>
+  <path fill="#CA6086" d="M60 17 C44 15 27 27 20 44 C14 60 18 82 34 95 C47 105 72 108 85 98 C102 85 108 62 102 45 C96 27 76 15 60 17 Z"/>
+  <g fill="#762642" opacity="0.78" font-family="Georgia, 'Times New Roman', serif" font-size="46">
+    <text x="31" y="77">A</text>
+    <text x="58" y="83">S</text>
+  </g>
+</svg>
