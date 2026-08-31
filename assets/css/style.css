@@ -178,12 +178,11 @@ main { position: relative; z-index: 2; }
 }
 
 /* ── Clusters (florals) ─────────────────────────────────────────── */
-.cluster { position: absolute; pointer-events: none; z-index: 1; }
+.cluster { position: absolute; pointer-events: none; mix-blend-mode: multiply; z-index: 1; }
 .cluster-tl { top: 0; left: 0; width: min(46vw, 300px); height: auto; }
 .cluster-r { top: 22%; right: 0; width: min(24vw, 180px); height: auto; }
 .cluster-hang { top: 0; left: 8vw; width: min(42vw, 250px); height: auto; position: absolute; }
-.cluster-br { bottom: -3rem; right: 0; width: min(44vw, 300px); height: auto; }
-.cluster-bt { bottom: 0; left: 0; right: 0; margin: 0 auto; width: min(80vw, 480px); height: auto; opacity: 0.9; }
+.cluster-br { bottom: -3rem; right: 0; width: min(48vw, 320px); height: auto; }
 
 /* ── Vine ───────────────────────────────────────────────────────── */
 .vine { position: absolute; top: 0; left: 0; width: 100%; z-index: 1; pointer-events: none; overflow: visible; }
