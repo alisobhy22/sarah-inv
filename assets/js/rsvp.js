@@ -102,10 +102,10 @@
   });
 
   function send(payload, anyoneComing) {
-    // No endpoint configured yet: the flow still has to complete rather than
-    // fail silently, so the reply is handed to WhatsApp instead.
+    // Not configured yet: say so plainly rather than spinning forever or
+    // reporting a success that never happened.
     if (!cfg.appsScriptUrl || cfg.appsScriptUrl.indexOf('PASTE_') === 0) {
-      offerWhatsApp(payload, 'The guest book is not connected yet. ');
+      failed('The guest book isn’t connected yet — please try again a little later.');
       return;
     }
     fetch(cfg.appsScriptUrl, {
@@ -119,24 +119,20 @@
         showDone(payload, anyoneComing);
       })
       .catch(function () {
+        // One silent retry first — a single dropped request on a phone
+        // network is common and not worth troubling the guest about.
         if (!state.retried) { state.retried = true; send(payload, anyoneComing); return; }
-        offerWhatsApp(payload, 'We couldn’t reach the guest book. ');
+        failed('We couldn’t save your reply just now. Please check your connection and tap Send again.');
       });
   }
 
-  // Never lose an RSVP.
-  function offerWhatsApp(payload, lead) {
+  // Hand the form back so the guest can simply try again. Their answers are
+  // all still on screen — nothing is cleared — so retrying costs one tap.
+  function failed(msg) {
+    state.retried = false;
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Send our reply';
-    errorEl.innerHTML = '';
-    errorEl.appendChild(document.createTextNode(lead));
-    var a = document.createElement('a');
-    a.href = InviteLib.buildWhatsAppUrl(cfg.whatsappPhone, payload.label, payload.attending);
-    a.textContent = 'Send your reply on WhatsApp instead';
-    a.target = '_blank';
-    a.rel = 'noopener';
-    errorEl.appendChild(a);
-    errorEl.hidden = false;
+    submitBtn.textContent = 'Send your reply';   // must match the markup
+    showError(msg);
   }
 
   function showDone(payload, anyoneComing) {

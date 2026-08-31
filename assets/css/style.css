@@ -125,14 +125,11 @@ main { position: relative; z-index: 2; }
   line-height: 1.12;
   color: var(--olive);
 }
-.surname {
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  font-size: 0.95rem;
-  color: var(--olive);
-  margin: 0.35rem 0 0.9rem;
-}
+/* No .surname rule any more. Surnames used to be set as small, wide-tracked
+   caps beneath each first name, which made the two halves of a person's name
+   look like two different things. Both names now share .first-name, so they
+   match on family, size, weight, case and tracking by construction rather
+   than by two rules being kept in agreement. */
 .amp {
   font-family: var(--font-script);
   font-size: 2.4rem;

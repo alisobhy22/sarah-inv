@@ -67,11 +67,6 @@ var InviteLib = (function () {
     };
   }
 
-  function buildWhatsAppUrl(phone, label, attending) {
-    var text = 'RSVP — ' + label + ': ' +
-      (attending ? 'Joyfully accepts' : 'Regretfully declines');
-    return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(text);
-  }
 
   // One continuous S-curving path. waypoints: [{y, x}] sorted by y —
   // the centreline x is interpolated linearly between them (this is
@@ -116,7 +111,6 @@ var InviteLib = (function () {
     levenshtein: levenshtein,
     matchGuest: matchGuest,
     countdownParts: countdownParts,
-    buildWhatsAppUrl: buildWhatsAppUrl,
     buildVinePath: buildVinePath,
     shouldSnap: shouldSnap
   };

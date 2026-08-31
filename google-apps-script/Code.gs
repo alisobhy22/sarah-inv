@@ -1,71 +1,99 @@
-// Engagement RSVP endpoint. Deploy: Extensions → Apps Script → Deploy →
-// New deployment → Web app → Execute as: Me / Access: Anyone.
-var SHEET_ID = 'PASTE_SHEET_ID_HERE';
+// ─────────────────────────────────────────────────────────────────
+// Engagement RSVP endpoint.
+//
+// Self-contained on purpose: one file to paste, nothing else to keep in
+// sync. (It used to need a second file, Lib.gs, only for the fuzzy name
+// matcher behind a guest-list lookup. Guests type their own names now,
+// so there is no list to look up and no matcher to share.)
+//
+// Deploy: Extensions → Apps Script → paste this in → set SHEET_ID below
+// → Deploy → New deployment → Web app → Execute as: Me,
+// Access: Anyone → copy the /exec URL into assets/js/config.js.
+// ─────────────────────────────────────────────────────────────────
 
-function doGet(e) {
-  var p = (e && e.parameter) || {};
-  if (p.action !== 'lookup') return json_({ ok: true });
-  var result = lookup_(p.name || '');
-  if (p.callback && /^[\w.]+$/.test(p.callback)) { // JSONP fallback
-    return ContentService
-      .createTextOutput(p.callback + '(' + JSON.stringify(result) + ')')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return json_(result);
-}
+var SHEET_ID = '1OiLC1t9tzJVbWCcyruVMvMzcUXWqynW-7fVivLAl0u8';
+var TAB = 'RSVPs';
 
-function lookup_(nameQuery) {
-  var rows = SpreadsheetApp.openById(SHEET_ID)
-    .getSheetByName('Guests').getDataRange().getValues();
-  var guests = [];
-  for (var i = 1; i < rows.length; i++) {
-    if (rows[i][1]) {
-      guests.push({
-        groupId: String(rows[i][0]),
-        name: String(rows[i][1]),
-        label: String(rows[i][2])
-      });
-    }
-  }
-  var hit = InviteLib.matchGuest(nameQuery, guests);
-  if (!hit) return { found: false };
-  var members = [];
-  for (var j = 0; j < guests.length; j++) {
-    if (guests[j].groupId === hit.groupId) members.push(guests[j].name);
-  }
-  return { found: true, groupId: hit.groupId, label: hit.label, members: members };
+var HEADERS = [
+  'First replied', 'Last updated', 'Submitted by', 'Attending',
+  'Party size', 'Coming', 'Not coming'
+];
+
+// A plain GET is the health check — open the /exec URL in a browser and
+// you should see {"ok":true}. Anything else means the deployment is wrong.
+function doGet() {
+  return json_({ ok: true, service: 'engagement-rsvp' });
 }
 
 function doPost(e) {
   var data;
   try { data = JSON.parse(e.postData.contents); }
-  catch (err) { return json_({ ok: false }); }
-  if (data.website) return json_({ ok: true }); // honeypot: fake success, write nothing
+  catch (err) { return json_({ ok: false, error: 'bad json' }); }
 
-  var sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('RSVPs');
+  // Honeypot: a bot filled the hidden field. Report success and write
+  // nothing, so it has no signal that it was caught.
+  if (data.website) return json_({ ok: true });
+
+  var submittedBy = String(data.submittedBy || '').trim();
+  if (!submittedBy) return json_({ ok: false, error: 'no name' });
+
+  // One line per person, so "who exactly is coming" survives the trip.
+  // Falls back to the flat members list if an older client posts.
+  var people = Array.isArray(data.guests) && data.guests.length
+    ? data.guests
+    : (data.members || []).map(function (n) { return { name: n, attending: true }; });
+
+  var coming = [], notComing = [];
+  people.forEach(function (p) {
+    var n = String(p && p.name || '').trim();
+    if (!n) return;
+    (p.attending ? coming : notComing).push(n);
+  });
+
+  var sheet = getSheet_();
   var now = new Date();
-  var groupId = String(data.groupId || ('manual-' + now.getTime()));
   var row = [
-    now, now, groupId,
-    String(data.label || ''),
-    (data.members || []).join(', '),
-    Number(data.partySize) || 0,
-    data.attending ? 'Joyfully accepts' : 'Regretfully declines',
-    String(data.submittedBy || '')
+    now, now, submittedBy,
+    coming.length ? 'Yes' : 'No',
+    coming.length,
+    coming.join(', '),
+    notComing.join(', ')
   ];
-  // Upsert by GroupID (column C); manual rows always append.
-  if (groupId.indexOf('manual-') !== 0) {
-    var values = sheet.getDataRange().getValues();
-    for (var i = 1; i < values.length; i++) {
-      if (String(values[i][2]) === groupId) {
-        row[0] = values[i][0]; // keep first-submitted timestamp
-        sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
-        return json_({ ok: true });
-      }
+
+  // Upsert on the submitter's name, not on a group id. The old key was
+  // data.groupId, which this form no longer sends — so every reply took
+  // the append path and a guest who changed their mind left two rows with
+  // nothing to say which one counted.
+  var key = normalizeName_(submittedBy);
+  var values = sheet.getDataRange().getValues();
+  for (var i = 1; i < values.length; i++) {
+    if (normalizeName_(String(values[i][2])) === key) {
+      row[0] = values[i][0];                       // keep the first-replied stamp
+      sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
+      return json_({ ok: true, updated: true });
     }
   }
   sheet.appendRow(row);
-  return json_({ ok: true });
+  return json_({ ok: true, updated: false });
+}
+
+// Creates the tab and its header row on first use, so there is no way to
+// get the columns wrong by hand.
+function getSheet_() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(TAB);
+  if (!sheet) sheet = ss.insertSheet(TAB);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(HEADERS);
+    sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+// Matching "Ali Sobhy", "ali  sobhy" and "Ali Sobhy " as one person.
+function normalizeName_(s) {
+  return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 function json_(o) {

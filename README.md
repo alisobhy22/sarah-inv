@@ -7,25 +7,39 @@ All text lives in `index.html`. Open it in any editor, change the words
 between the tags, save.
 
 ## Settings
-`assets/js/config.js` holds the four values that wire the site up:
-the RSVP endpoint URL, the Google Maps link, the event date, and the
-WhatsApp fallback number. (Setup steps are in later sections.)
+`assets/js/config.js` holds the three values that wire the site up:
+the RSVP endpoint URL, the Google Maps link, and the event date.
+(Setup steps are in later sections.)
 
 ## Google Sheet setup
-1. Create a Google Sheet named **Engagement RSVPs** with two tabs:
-   - **Guests** — header row `GroupID | Full Name | Group Label`, then one
-     row per invited person. Everyone sharing a GroupID answers together.
-     Example: `g001 | Ahmed Kamal | The Kamal Family`.
-   - **RSVPs** — header row
-     `Timestamp | Updated At | GroupID | Group Label | Members | Party Size | Attending | Submitted By`.
-     Leave the rest empty; the website writes here.
-2. In the Sheet: **Extensions → Apps Script**. Create two files, paste in
-   `google-apps-script/Code.gs` and `google-apps-script/Lib.gs`. In
-   `Code.gs`, set `SHEET_ID` to the long id from the Sheet's URL.
-3. **Deploy → New deployment → Web app** — Execute as **Me**, access
-   **Anyone**. Copy the deployment URL into `appsScriptUrl` in
-   `assets/js/config.js`.
-4. To change the guest list later, just edit the Guests tab. No redeploy.
+No guest list is needed — guests type their own name and add anyone
+they're replying for, so nothing has to be known in advance.
+
+1. Create a blank Google Sheet, named anything (e.g. **Engagement
+   RSVPs**). You don't need to add tabs or headers: the script creates
+   the `RSVPs` tab and its header row the first time someone replies.
+2. From the Sheet's URL, copy the long id between `/d/` and `/edit`:
+   `docs.google.com/spreadsheets/d/`**`THIS_PART`**`/edit`
+3. In the Sheet: **Extensions → Apps Script**. Delete whatever is in
+   `Code.gs` and paste in `google-apps-script/Code.gs` from this repo.
+   Set `SHEET_ID` at the top to the id from step 2. Save.
+4. **Deploy → New deployment → Web app** — Execute as **Me**, access
+   **Anyone**. Authorise when prompted (Google will warn about an
+   unverified app — it's your own script; Advanced → Go to project).
+5. Copy the deployment URL (it ends in `/exec`). Open it in a browser
+   first: you should see `{"ok":true,"service":"engagement-rsvp"}`. If
+   you see anything else, the deployment settings are wrong.
+6. Paste that URL into `appsScriptUrl` in `assets/js/config.js`. Commit
+   and push.
+
+**Changing the script later:** editing the code isn't enough — you must
+**Deploy → Manage deployments → edit → Version: New version** for the
+change to reach the live URL.
+
+Each reply becomes one row: who submitted it, whether anyone is coming,
+the headcount, and the names split into *Coming* and *Not coming*. A
+guest who replies twice updates their existing row instead of adding a
+second one, so the sheet always shows their latest answer.
 
 ## Swapping in the real invitation artwork
 The site ships with drawn florals. To use the invitation's own artwork:

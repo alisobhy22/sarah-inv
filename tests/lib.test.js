@@ -43,11 +43,6 @@ test('countdownParts', () => {
   assert.equal(L.countdownParts(0, 1000).done, true);
 });
 
-test('buildWhatsAppUrl encodes the message', () => {
-  const url = L.buildWhatsAppUrl('20100000000', 'The Kamal Family', true);
-  assert.ok(url.startsWith('https://wa.me/20100000000?text='));
-  assert.ok(decodeURIComponent(url).includes('Joyfully accepts'));
-});
 
 test('buildVinePath starts at first waypoint and ends at height', () => {
   const wps = [{ y: 0, x: 340 }, { y: 1000, x: 340 }];
