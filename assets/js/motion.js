@@ -29,8 +29,14 @@
     var right = mobile ? w - 14 : w - 42;
     var left = mobile ? w - 14 : 42; // no crossover on mobile
     var loc = document.getElementById('location');
-    var crossStart = loc.offsetTop - 200;
-    var crossEnd = loc.offsetTop + 200;
+    // The crossover has to be given room. At a fixed +/-200px the vine cut the
+    // full page width in 400px of travel and read as a straight diagonal rule
+    // ruled across the paper, not a vine — and it got worse once the sections
+    // grew to a full screen each. Scaling the window to the viewport keeps the
+    // traverse gradual at any height.
+    var cross = Math.max(360, Math.round(window.innerHeight * 0.8));
+    var crossStart = loc.offsetTop - cross;
+    var crossEnd = loc.offsetTop + cross;
     var waypoints = [
       { y: 0, x: right },
       { y: crossStart, x: right },
@@ -203,7 +209,15 @@
   // --petal-mask, and the scaleX yoyo below fakes the edge-on flip that
   // makes a tumbling petal read as a petal rather than a drifting speck.
   var petalLayer = null;
-  var PETAL_COUNT = 12;
+  var washes = document.querySelector('.washes');
+
+  // Both the petal layer and the wash layer are absolutely positioned with no
+  // positioned ancestor, so percentage heights would resolve against the
+  // VIEWPORT, not the document. Their height has to be written in px.
+  function sizeDocLayers(h) {
+    if (washes) washes.style.height = h + 'px';
+    if (petalLayer) petalLayer.style.height = h + 'px';
+  }
 
   function buildPetals() {
     if (petalLayer) petalLayer.remove();
@@ -211,8 +225,18 @@
     petalLayer.className = 'petal-layer';
     petalLayer.setAttribute('aria-hidden', 'true');
 
-    var vh = window.innerHeight;
-    for (var i = 0; i < PETAL_COUNT; i++) {
+    var docH = document.documentElement.scrollHeight;
+    petalLayer.style.height = docH + 'px';
+
+    // Anchored to the page, the petals have a whole document to cover rather
+    // than one screen, so the count scales with its height — a fixed dozen
+    // spread over five screens would read as nothing at all. Each petal falls
+    // inside its own band and loops there, which keeps the whole page evenly
+    // populated without animating a hundred nodes.
+    var BAND = 620;
+    var count = Math.max(10, Math.min(26, Math.round(docH / 340)));
+
+    for (var i = 0; i < count; i++) {
       var p = document.createElement('div');
       // Deterministic scatter — no Math.random, so an orientation change
       // rebuilds the same sky instead of reshuffling it under the guest.
@@ -221,23 +245,27 @@
       p.style.width = size + 'px';
       p.style.height = Math.round(size * 1.35) + 'px';
       p.style.left = ((i * 61 + 9) % 94) + '%';
+      // Bands overlap slightly and are offset per petal, so the seams between
+      // them never line up into a visible horizontal rank of petals.
+      var bandTop = Math.round((docH - BAND) * (i / Math.max(1, count - 1)));
+      p.style.top = bandTop + 'px';
       petalLayer.appendChild(p);
 
       var dur = 16 + (i % 5) * 4;
       gsap.set(p, { y: -50, rotation: i * 37 });
       var fall = gsap.to(p, {
-        y: vh + 60,
+        y: BAND,
         x: (i % 2 ? '+=' : '-=') + (30 + (i % 4) * 22),
         rotation: '+=' + (150 + (i % 3) * 90),
         duration: dur,
         ease: 'none',
         repeat: -1
       });
-      // Seed each petal at a different point of its own fall, so the sky is
+      // Seed each petal at a different point of its own fall, so the page is
       // already populated on load rather than filling in over the first
       // twenty seconds. Staggered delays would leave the first screen bare —
       // which is the screen that matters most.
-      fall.progress(i / PETAL_COUNT);
+      fall.progress((i * 0.37) % 1);
 
       gsap.to(p, {
         scaleX: 0.25,
@@ -248,8 +276,22 @@
       });
     }
     document.body.appendChild(petalLayer);
+    sizeDocLayers(docH);
   }
   buildPetals();
+
+  // The document grows when the webfonts swap in and when the RSVP group card
+  // appears, and both layers are sized in px — so they have to be re-measured
+  // rather than left short at the bottom of the page.
+  if (typeof ResizeObserver !== 'undefined') {
+    var lastDocH = document.documentElement.scrollHeight;
+    new ResizeObserver(function () {
+      var h = document.documentElement.scrollHeight;
+      if (Math.abs(h - lastDocH) < 12) return;
+      lastDocH = h;
+      sizeDocLayers(h);
+    }).observe(document.body);
+  }
 
   // ── Directional section advance ───────────────────────────────
   // A small scroll carries the guest to the NEXT section. CSS scroll-snap

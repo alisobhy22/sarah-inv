@@ -230,7 +230,52 @@ main { position: relative; z-index: 2; }
 .cluster { position: absolute; pointer-events: none; mix-blend-mode: multiply; z-index: 1; }
 .cluster-tl { top: 0; left: 0; width: min(46vw, 300px); height: auto; }
 .cluster-r { top: 22%; right: 0; width: min(24vw, 180px); height: auto; }
+/* The strands are drawn flush to y=0 of their own viewBox, so with a hard
+   top edge they read as guillotined rather than hanging — a leaf gets sliced
+   mid-shape at the boundary. Nothing was clipping them; the cut is in the
+   artwork. Dissolving the top 22% into the paper makes them strands coming
+   down from somewhere past the frame, which is what they're for. */
+.cluster-hang, .cluster-tr {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 22%);
+}
 .cluster-hang { top: 0; left: 8vw; width: min(42vw, 250px); height: auto; position: absolute; }
+
+/* Anchors for the sections that had none. Each reuses a cluster file already
+   in cache, mirrored or re-cornered so the page doesn't read as one bouquet
+   stamped five times. */
+/* `left: 0` would be the PANEL's left edge, and the panel is a narrow centred
+   column (560-640px) — so the anchor landed on top of the card instead of in
+   the section's corner. `calc(50% - 50vw)` walks back out from the centred
+   column to the viewport edge, which is where a corner anchor belongs.
+   body's overflow-x: hidden absorbs the bleed. */
+.cluster-bl {
+  bottom: -2rem;
+  left: calc(50% - 50vw);
+  width: min(30vw, 190px); height: auto;
+  /* The independent `scale` property, NOT transform: scaleX(-1). The breeze
+     tween writes a full transform matrix on every .cluster, which would wipe
+     a transform-based mirror. `scale` composes with `transform` instead of
+     competing for it, so the flip survives with or without GSAP. */
+  scale: -1 1;
+}
+.cluster-bl.wide { width: min(38vw, 260px); }
+.cluster-tr {
+  top: 0;
+  right: calc(50% - 50vw + 3vw);
+  width: min(26vw, 150px); height: auto;
+}
+
+/* Panel content sits above the florals. .cluster carries z-index 1 and the
+   content blocks are static, so without this a corner anchor paints straight
+   over the face it's meant to sit behind. Only .hero-inner had it; measured,
+   .cluster-br was overlapping the RSVP form by 348x93px. */
+.card,
+.rsvp-inner,
+.closing > div {
+  position: relative;
+  z-index: 2;
+}
 .cluster-br { bottom: -3rem; right: 0; width: min(48vw, 320px); height: auto; }
 
 /* ── Vine ───────────────────────────────────────────────────────── */
@@ -353,9 +398,18 @@ html.motion .orchid.bloomed .orchid-heart { transition-delay: 0.36s; }
    z-index 1 puts the layer under main (z-index 2), so petals drift BEHIND
    the type and behind the opaque .card faces, and show only over bare
    paper. That's the depth we want: they're in the room, not on the lens. */
+/* ABSOLUTE, not fixed. Fixed meant the petals were glued to the viewport and
+   travelled down the page with the guest — they belonged to the lens rather
+   than to the scene. Anchored to the document they stay with the paper and
+   slide out of view as you move past, with their own petals living further
+   down. Height is set by motion.js, because an absolutely positioned element
+   with no positioned ancestor resolves percentages against the viewport, not
+   the document. */
 .petal-layer {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
@@ -460,4 +514,46 @@ html.motion { scroll-behavior: auto; }
   .hero .script-word { font-size: clamp(2.3rem, 9vw, 3.5rem); }
   .hero .amp { font-size: 2rem; }
   .hero .monogram { width: 68px; }
+}
+
+/* ── Watercolour washes ─────────────────────────────────────────────
+   Broad, very low-alpha blooms of pigment lying under everything, to give
+   the bare paper around each card some depth. Pure gradients: no image
+   request, no decode, nothing to lazy-load — which is what makes this the
+   safe way to fill space on a phone. Height is set by motion.js so the
+   blooms spread over the whole document rather than one viewport.
+
+   Alphas are deliberately at the edge of visibility (3-6%). They should
+   register as paper that isn't perfectly even, never as shapes. */
+.washes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-image:
+    radial-gradient(58vw 30vh at 12% 4%,  color-mix(in srgb, var(--rose-soft) 30%, transparent), transparent 70%),
+    radial-gradient(46vw 22vh at 88% 15%, color-mix(in srgb, var(--olive-light) 26%, transparent), transparent 72%),
+    radial-gradient(60vw 26vh at 78% 33%, color-mix(in srgb, var(--rose-soft) 26%, transparent), transparent 70%),
+    radial-gradient(50vw 24vh at 8%  48%, color-mix(in srgb, var(--olive-light) 24%, transparent), transparent 72%),
+    radial-gradient(64vw 30vh at 92% 62%, color-mix(in srgb, var(--rose-soft) 24%, transparent), transparent 70%),
+    radial-gradient(52vw 26vh at 16% 76%, color-mix(in srgb, var(--olive-light) 26%, transparent), transparent 72%),
+    radial-gradient(58vw 28vh at 82% 92%, color-mix(in srgb, var(--rose-soft) 28%, transparent), transparent 70%);
+  opacity: 0.5;
+}
+
+/* ── Mobile first: the anchors give way to the words ────────────────
+   On a phone the card has the screen to itself and the botanicals are
+   guests in it, not co-stars. Anchors shrink, the two heaviest lose some
+   opacity, and the closing bouquet drops entirely — five florals down a
+   narrow column is clutter, and the closing is the quietest moment. */
+@media (max-width: 599px) {
+  .cluster-bl { width: min(34vw, 150px); bottom: -1rem; opacity: 0.75; }
+  .cluster-bl.wide { width: min(40vw, 175px); }
+  .cluster-tr { width: min(30vw, 120px); right: 2vw; opacity: 0.8; }
+  #closing .cluster-bl { display: none; }
+  .washes { opacity: 0.62; }   /* fewer florals, so the paper carries more */
 }
