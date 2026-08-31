@@ -63,7 +63,6 @@ main { position: relative; z-index: 2; }
    air, narrowest where the closing should feel intimate — so the eye gets a
    rhythm down the page instead of one repeated block. */
 #names       { --panel-w: 720px; }
-#celebration { --panel-w: 560px; --panel-pad: 4.5rem; }
 #location    { --panel-w: 600px; }
 #rsvp        { --panel-w: 640px; --panel-pad: 5.5rem; }
 #closing     { --panel-w: 520px; }
@@ -483,7 +482,6 @@ html.motion { scroll-behavior: auto; }
    stopped short. Giving it a full screen makes the last section land like
    every other one. (#interlude is deliberately NOT in this list: it's the
    wordless breath, and it stays short.) */
-#celebration,
 #location,
 #rsvp,
 #closing {
@@ -908,4 +906,115 @@ html.gated body { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .envelope, .seal, .seal-art, .seal-hint { animation: none; }
+}
+
+/* ── Revisions ──────────────────────────────────────────────────────
+   Appended last so these win on source order. */
+
+/* Names: surnames are gone, so the two first names carry the hero alone
+   and can come down in size — at 4.2rem "Abdelrahman" was nearly the full
+   measure and read as shouting rather than as the centrepiece. Balanced
+   against the script "Engagement" below it rather than against the page. */
+.first-name { font-size: clamp(2.3rem, 8.5vw, 3.5rem); }
+.hero .first-name { font-size: clamp(2.2rem, 8vw, 3.4rem); }
+@media (max-height: 860px) {
+  .hero .first-name { font-size: clamp(2rem, 7vw, 3rem); }
+}
+.names-block { margin: 1.1rem 0; }
+.amp { font-size: 2.1rem; margin: 0.35rem 0; }
+
+/* The Celebration section is gone; #location is now the first card. */
+#location { --panel-w: 620px; }
+
+/* ── RSVP ───────────────────────────────────────────────────────────
+   Boxed like the location card, and given the widest measure on the page:
+   it is the one section that asks the guest to DO something, so it earns
+   more room than the ones that only tell them something. */
+#rsvp { --panel-w: 700px; }
+.rsvp-inner { text-align: center; }
+.rsvp-inner .body-note { max-width: 46ch; }
+.rsvp-inner .body-note strong {
+  font-weight: 500;
+  color: var(--rose);
+  white-space: nowrap;
+}
+
+/* Choosing from a list, not typing. Styled as paper rather than as a
+   browser control, but still a native <select> — the OS picker is the
+   most usable thing on a phone and nothing hand-built beats it. */
+#guest-select {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--ink);
+  background-color: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--olive) 35%, transparent);
+  padding: 0.85rem 2.6rem 0.85rem 1rem;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  cursor: pointer;
+  /* the chevron, drawn rather than imported */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%236A7A42' stroke-width='1.4' d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 12px 8px;
+}
+#guest-select:focus-visible { outline: 3px solid var(--rose-soft); outline-offset: 2px; }
+
+/* One row per person on the invitation, each answering for themselves. */
+.group-members li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--olive) 12%, transparent);
+}
+.group-members li:last-child { border-bottom: 0; }
+.member-check,
+.plus-one input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--olive) 45%, transparent);
+  background: var(--paper);
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.member-check::after,
+.plus-one input::after {
+  content: "";
+  width: 0.62rem;
+  height: 0.34rem;
+  border-left: 2px solid var(--paper-raised);
+  border-bottom: 2px solid var(--paper-raised);
+  transform: rotate(-45deg) translateY(-1px) scale(0);
+  transition: transform 0.18s cubic-bezier(.2, .9, .3, 1.4);
+}
+.member-check:checked,
+.plus-one input:checked { background: var(--rose); border-color: var(--rose); }
+.member-check:checked::after,
+.plus-one input:checked::after { transform: rotate(-45deg) translateY(-1px) scale(1); }
+.member-check:focus-visible,
+.plus-one input:focus-visible { outline: 3px solid var(--rose-soft); outline-offset: 2px; }
+.group-members label { cursor: pointer; }
+
+.plus-one {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid color-mix(in srgb, var(--olive) 18%, transparent);
+  cursor: pointer;
+  font-style: italic;
+}
+
+@media (max-width: 599px) {
+  .rsvp-inner .body-note { max-width: none; }
 }

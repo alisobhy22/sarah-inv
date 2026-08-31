@@ -466,13 +466,37 @@
     // position made a section arrive as a ragged trickle — the rule, then the
     // heading, then the date, each on its own schedule. Grouping them behind
     // one trigger with a stagger lands the section as a composed unit.
+    // Deliberately assertive. At y:24 over 0.9s the reveal was invisible in
+    // practice — the section had already settled by the time the eye reached
+    // it. The travel is now more than double, the card arrives slightly
+    // under-scale so it grows into place, and `back.out` overshoots a hair at
+    // the end so there is a moment to notice. It fires at 'top 78%' rather
+    // than 72%, which puts the start well inside the viewport.
     gsap.utils.toArray('main > section:not(#names)').forEach(function (sec) {
       var els = sec.querySelectorAll('[data-reveal]');
       if (!els.length) return;
-      gsap.to(els, {
-        opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', stagger: 0.1,
-        scrollTrigger: { trigger: sec, start: 'top 72%' }
-      });
+      gsap.fromTo(els,
+        { opacity: 0, y: 56, scale: 0.955 },
+        {
+          opacity: 1, y: 0, scale: 1,
+          duration: 1.05, ease: 'back.out(1.4)', stagger: 0.14,
+          scrollTrigger: { trigger: sec, start: 'top 78%' }
+        });
+    });
+
+    // The hairlines inside a revealed card draw themselves outward from the
+    // centre once the card has landed, so the eye gets a second beat of
+    // motion rather than one and done.
+    gsap.utils.toArray('main > section:not(#names)').forEach(function (sec) {
+      var rules = sec.querySelectorAll('.rule');
+      if (!rules.length) return;
+      gsap.fromTo(rules,
+        { scaleX: 0.1, opacity: 0 },
+        {
+          scaleX: 1, opacity: 1, duration: 0.85, ease: 'power3.out',
+          stagger: 0.1, delay: 0.25,
+          scrollTrigger: { trigger: sec, start: 'top 78%' }
+        });
     });
 
     // Map moment: the pin drops in with a bounce, the route fades after.
