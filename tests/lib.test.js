@@ -55,3 +55,33 @@ test('buildVinePath starts at first waypoint and ends at height', () => {
   assert.ok(d.startsWith('M 340 0'));
   assert.ok(d.trim().endsWith('340 1000'));
 });
+
+// ── shouldSnap ────────────────────────────────────────────────────
+// A section taller than the window must not carry a snap point: its
+// start-aligned point would pull a guest reading its lower half back
+// to the top, which reads as the page being stuck.
+test('shouldSnap: a section shorter than the window snaps', () => {
+  assert.equal(L.shouldSnap(600, 900), true);
+});
+
+test('shouldSnap: a section exactly the window height snaps', () => {
+  assert.equal(L.shouldSnap(900, 900), true);
+});
+
+test('shouldSnap: a section taller than the window does not snap', () => {
+  assert.equal(L.shouldSnap(1400, 900), false);
+});
+
+test('shouldSnap: overhang within the slack still snaps', () => {
+  assert.equal(L.shouldSnap(906, 900), true);
+  assert.equal(L.shouldSnap(909, 900), false);
+});
+
+test('shouldSnap: slack is configurable', () => {
+  assert.equal(L.shouldSnap(940, 900, 40), true);
+  assert.equal(L.shouldSnap(941, 900, 40), false);
+});
+
+test('shouldSnap: a zero-height or unmeasured section does not snap', () => {
+  assert.equal(L.shouldSnap(0, 900), false);
+});

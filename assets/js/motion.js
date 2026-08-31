@@ -132,7 +132,13 @@
     var tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
     tl.from('.monogram .mono-letter', { opacity: 0, y: 10, stagger: 0.2, duration: 0.9 })
       .to('.hero .cluster', { opacity: 1, duration: 1.2 }, '-=0.4')
-      .from('.cluster-tl', { xPercent: 18, yPercent: 12, rotation: 8, duration: 1.4 }, '<')
+      // Pixel `y`, NOT yPercent. yPercent belongs to the parallax scrub, and
+      // wireParallax() builds its trigger while this entrance is still in
+      // flight — so it recorded the entrance's in-progress yPercent (12, i.e.
+      // 52px) as the scrub's start value, and the first scroll of any size
+      // snapped the cluster 52px down to meet it. Same channel discipline the
+      // breeze already follows below: one transform channel, one owner.
+      .from('.cluster-tl', { xPercent: 18, y: 52, rotation: 8, duration: 1.4 }, '<')
       .from('.cluster-r', { xPercent: 24, rotation: -6, duration: 1.4 }, '<')
       .to('.hero [data-reveal]', { opacity: 1, y: 0, stagger: 0.12, duration: 0.8 }, '-=0.8')
       .to('.hero .rule', { scaleX: 1, stagger: 0.1, duration: 0.7, ease: 'power2.out' }, '-=0.9');
@@ -144,7 +150,7 @@
   function setHeroFinal() {
     gsap.set('.monogram .mono-letter', { opacity: 1, y: 0 });
     gsap.set('.hero .cluster', { opacity: 1 });
-    gsap.set('.cluster-tl', { xPercent: 0, yPercent: 0, rotation: 0 });
+    gsap.set('.cluster-tl', { xPercent: 0, y: 0, rotation: 0 });   // y, not yPercent — see above
     gsap.set('.cluster-r', { xPercent: 0, rotation: 0 });
     gsap.set('.hero [data-reveal]', { opacity: 1, y: 0 });
     gsap.set('.hero .rule', { scaleX: 1 });
@@ -188,57 +194,198 @@
     });
   });
 
-  // ── Falling petals: a slow, endless drift down the hero only.
-  (function heroPetals() {
-    var hero = document.getElementById('names');
-    for (var i = 0; i < 7; i++) {
-      var p = document.createElement('div');
-      p.className = 'petal-fall' + (i % 2 ? ' alt' : '');
-      p.style.left = (5 + (i * 13) % 90) + '%';
-      hero.appendChild(p);
-      gsap.set(p, { y: -40, rotation: i * 40 });
-      gsap.to(p, {
-        y: hero.offsetHeight + 60,
-        x: (i % 2 ? '+=' : '-=') + (40 + i * 10),
-        rotation: '+=' + (140 + i * 30),
-        duration: 10 + (i % 4) * 3,
-        delay: i * 1.7,
-        ease: 'none',
-        repeat: -1
-      });
-    }
-  })();
-
-  // ── Floating petals: a sparse background layer that drifts as the
-  // guest scrolls. Deterministic scatter (no flicker between rebuilds),
-  // generated only in motion mode so reduced-motion never sees them.
+  // ── Falling petals ────────────────────────────────────────────
+  // One FIXED, viewport-sized layer, so petals fall across every section
+  // instead of only the hero. This replaces both of the old layers: the
+  // hero-only fall, and the scroll-scrubbed "float" layer whose petals hung
+  // motionless over the type. At 12px a border-radius blob has no silhouette
+  // and reads as a smudge on the paper; the shape now comes from
+  // --petal-mask, and the scaleX yoyo below fakes the edge-on flip that
+  // makes a tumbling petal read as a petal rather than a drifting speck.
   var petalLayer = null;
+  var PETAL_COUNT = 12;
+
   function buildPetals() {
     if (petalLayer) petalLayer.remove();
     petalLayer = document.createElement('div');
     petalLayer.className = 'petal-layer';
     petalLayer.setAttribute('aria-hidden', 'true');
-    var h = document.documentElement.scrollHeight;
-    var count = 14;
-    for (var i = 0; i < count; i++) {
+
+    var vh = window.innerHeight;
+    for (var i = 0; i < PETAL_COUNT; i++) {
       var p = document.createElement('div');
-      p.className = 'petal-float';
-      var size = 9 + (i * 7) % 13;
-      p.style.left = ((i * 61 + 13) % 92) + '%';
-      p.style.top = Math.round(h * (0.06 + 0.88 * (i / count))) + 'px';
+      // Deterministic scatter — no Math.random, so an orientation change
+      // rebuilds the same sky instead of reshuffling it under the guest.
+      p.className = 'petal-fall' + (i % 3 === 1 ? ' rose' : (i % 5 === 2 ? ' leaf' : ''));
+      var size = 9 + (i * 7) % 11;
       p.style.width = size + 'px';
-      p.style.height = Math.round(size * 1.4) + 'px';
+      p.style.height = Math.round(size * 1.35) + 'px';
+      p.style.left = ((i * 61 + 9) % 94) + '%';
       petalLayer.appendChild(p);
-      gsap.to(p, {
-        y: -(110 + (i % 5) * 55),
-        rotation: (i % 2 ? 1 : -1) * (35 + (i * 13) % 45),
+
+      var dur = 16 + (i % 5) * 4;
+      gsap.set(p, { y: -50, rotation: i * 37 });
+      var fall = gsap.to(p, {
+        y: vh + 60,
+        x: (i % 2 ? '+=' : '-=') + (30 + (i % 4) * 22),
+        rotation: '+=' + (150 + (i % 3) * 90),
+        duration: dur,
         ease: 'none',
-        scrollTrigger: { trigger: p, start: 'top bottom', end: 'bottom top', scrub: 1.2 }
+        repeat: -1
+      });
+      // Seed each petal at a different point of its own fall, so the sky is
+      // already populated on load rather than filling in over the first
+      // twenty seconds. Staggered delays would leave the first screen bare —
+      // which is the screen that matters most.
+      fall.progress(i / PETAL_COUNT);
+
+      gsap.to(p, {
+        scaleX: 0.25,
+        duration: 1.6 + (i % 4) * 0.5,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true
       });
     }
     document.body.appendChild(petalLayer);
   }
   buildPetals();
+
+  // ── Directional section advance ───────────────────────────────
+  // A small scroll carries the guest to the NEXT section. CSS scroll-snap
+  // can't do this: it settles on the nearest point, which right after a
+  // small scroll is the point just left — measured, a 90px wheel from the
+  // hero snapped back to 0. So intent is accumulated here and the move is
+  // issued as an ordinary native smooth scroll. Native scrolling is
+  // preserved throughout: preventDefault fires only while a move is
+  // actually in flight, never on a scroll we're letting through.
+  // #interlude is not a destination. It's the wordless breath between the
+  // names and the celebration — landing ON it would spend a whole screen on
+  // a panel with nothing to read. It stays a section you pass THROUGH.
+  var PANELS = gsap.utils.toArray('main > section.panel')
+    .filter(function (sec) { return sec.id !== 'interlude'; });
+
+  var INTENT_PX = 40;      // wheel travel in one direction before advancing
+  var GLIDE_S = 1.5;       // ← the drama dial. Seconds per section.
+  var INTENT_DECAY_MS = 180;
+
+  var moving = false;
+  var glide = null;
+  var intent = 0;
+  var intentDir = 0;
+  var intentTimer = null;
+
+  // Never take the scroll away from someone USING the form — a hijacked
+  // scroll under an open mobile keyboard is miserable. Focus is the right
+  // test, not the section: exempting all of #rsvp meant a guest who was
+  // merely reading it could never advance to the closing, since the pointer
+  // sits inside that section whenever it fills the screen.
+  function exempt() {
+    var el = document.activeElement;
+    return !!(el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+  }
+
+  function indexAt(y) {
+    var idx = 0;
+    for (var i = 0; i < PANELS.length; i++) {
+      if (PANELS[i].offsetTop <= y + 2) idx = i;
+    }
+    return idx;
+  }
+
+  // A section taller than the window has to be READ THROUGH before it hands
+  // the guest on, or a nudge would skip content they never saw — the hero's
+  // venue line, the map. Such a section advances only from its far edge;
+  // in between, this returns false and the scroll is left entirely native.
+  function canLeave(sec, dir, y) {
+    if (InviteLib.shouldSnap(sec.offsetHeight, window.innerHeight)) return true;
+    if (dir > 0) return y + window.innerHeight >= sec.offsetTop + sec.offsetHeight - 4;
+    return y <= sec.offsetTop + 4;
+  }
+
+  function advance(dir) {
+    var y = window.scrollY;
+    var i = indexAt(y);
+    if (!canLeave(PANELS[i], dir, y)) return false;
+    var target = i + dir;
+    // Going down from mid-section, the first stop is that section's own top.
+    if (dir < 0 && y > PANELS[i].offsetTop + 4) target = i;
+    if (target < 0 || target >= PANELS.length) return false;
+    if (dir > 0 && PANELS[target].offsetTop <= y + 2) return false;
+
+    // Driven here rather than handed to `scroll-behavior: smooth`, because
+    // that has no duration knob — the browser picks ~300ms and there is no
+    // CSS to slow it down. Tweening a proxy and writing the scroll position
+    // each frame buys both the duration and the easing, and needs no
+    // ScrollToPlugin. power2.inOut so the page leans in and settles rather
+    // than starting and stopping flat.
+    moving = true;
+    intent = 0;
+    intentDir = 0;
+
+    var proxy = { y: window.scrollY };
+    glide = gsap.to(proxy, {
+      y: PANELS[target].offsetTop,
+      duration: GLIDE_S,
+      ease: 'power2.inOut',
+      onUpdate: function () { window.scrollTo(0, proxy.y); },
+      onComplete: function () { moving = false; glide = null; },
+      onInterrupt: function () { moving = false; glide = null; }
+    });
+    return true;
+  }
+
+  // A guest who reaches for the page mid-glide gets it back immediately —
+  // a long animation you cannot interrupt is the part of this pattern that
+  // actually feels broken. Touch isn't preventDefault'd anywhere, so the
+  // finger would otherwise fight the tween for a second and a half.
+  function cancelGlide() {
+    if (!glide) return;
+    glide.kill();
+    glide = null;
+    moving = false;
+  }
+
+  window.addEventListener('wheel', function (e) {
+    if (e.ctrlKey) return;              // pinch-zoom, not a scroll
+    if (moving) { e.preventDefault(); return; }
+    if (exempt()) return;
+    var dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
+    if (!dir) return;
+
+    if (dir !== intentDir) { intent = 0; intentDir = dir; }
+    intent += Math.abs(e.deltaY);
+    clearTimeout(intentTimer);
+    intentTimer = setTimeout(function () { intent = 0; intentDir = 0; }, INTENT_DECAY_MS);
+    if (intent < INTENT_PX) return;
+
+    if (advance(dir)) e.preventDefault();
+  }, { passive: false });
+
+  // Touch takes the opposite tack: it NEVER calls preventDefault. WhatsApp's
+  // in-app browser is the primary platform here and its native momentum
+  // scrolling is better than anything worth substituting — hijacking
+  // touchmove is exactly where these implementations start feeling broken.
+  // Instead the gesture runs natively, and only a SHORT flick (the "scroll a
+  // tiny bit" case, which native scrolling would leave stranded between
+  // sections) is finished off with a glide once the finger lifts.
+  var touchStartY = 0;
+  var touchStartAt = 0;
+  window.addEventListener('touchstart', function (e) {
+    cancelGlide();                       // the finger always wins
+    touchStartY = e.touches[0].clientY;
+    touchStartAt = Date.now();
+  }, { passive: true });
+
+  window.addEventListener('touchend', function (e) {
+    if (moving || exempt()) return;
+    var dy = touchStartY - (e.changedTouches[0] ? e.changedTouches[0].clientY : touchStartY);
+    var far = Math.abs(dy);
+    // A long swipe is a deliberate journey — leave it and its momentum be.
+    if (far < 12 || far > 90) return;
+    if (Date.now() - touchStartAt > 600) return;   // a slow drag, not a flick
+    advance(dy > 0 ? 1 : -1);
+  }, { passive: true });
 
   // ── Section reveals ───────────────────────────────────────────
   function wireReveals() {

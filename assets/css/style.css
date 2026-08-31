@@ -12,6 +12,13 @@
   --font-display: "Cormorant Garamond", "Times New Roman", serif;
   --font-body: "EB Garamond", Georgia, serif;
   --font-script: "Great Vibes", cursive;
+
+  /* A petal SILHOUETTE, carried as a mask rather than a background so the
+     colour stays a token and one shape serves every petal. The interior
+     stroke is black at low opacity: in a mask that thins the alpha there,
+     so the fold reads as a crease rather than a painted line. Replaces the
+     border-radius blobs, which at 12px read as smudges over the type. */
+  --petal-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 32'%3E%3Cpath fill='%23fff' d='M12 .5C3.5 8.5.5 19 6 27.5c3.5 4.6 9.6 3.6 12.6-1C23.6 18 20.5 8.5 12 .5Z'/%3E%3Cpath fill='%23000' fill-opacity='.32' d='M12.6 3C9.4 10.6 8.6 20 11 28.8c.5 1.7 2.2 1.2 1.8-.4C10.6 20 11.3 11 14 4.2Z'/%3E%3C/svg%3E");
 }
 
 /* ── Ground ─────────────────────────────────────────────────────── */
@@ -87,16 +94,19 @@ main { position: relative; z-index: 2; }
 }
 
 /* ── Typography ─────────────────────────────────────────────────── */
+/* Tracking is set against the source card, not by the letterpress reflex.
+   The original's caps are tight and condensed; at 0.28em they drifted into
+   generic-wedding-template territory and stopped reading as this invitation. */
 .caps {
   font-family: var(--font-display);
   font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.18em;
   font-size: 0.95rem;
   color: var(--olive);
   margin: 1.1rem 0;
 }
-.caps.small { font-size: 0.8rem; letter-spacing: 0.24em; }
+.caps.small { font-size: 0.8rem; letter-spacing: 0.16em; }
 .rule {
   border: 0;
   border-top: 1px solid color-mix(in srgb, var(--olive) 35%, transparent);
@@ -114,7 +124,7 @@ main { position: relative; z-index: 2; }
 .surname {
   font-family: var(--font-display);
   text-transform: uppercase;
-  letter-spacing: 0.4em;
+  letter-spacing: 0.3em;
   font-size: 0.95rem;
   color: var(--olive);
   margin: 0.35rem 0 0.9rem;
@@ -146,10 +156,13 @@ main { position: relative; z-index: 2; }
 .body-note { max-width: 34ch; margin: 1rem auto; }
 
 /* ── Cards ──────────────────────────────────────────────────────── */
+/* The page-frame already draws the plate mark around everything. A bordered
+   card inside it framed the same content twice; the raised paper and a
+   deeper shadow lift the card off the ground without a second outline. */
 .card {
   background: var(--paper-raised);
-  border: 1px solid color-mix(in srgb, var(--olive) 18%, transparent);
-  box-shadow: 0 14px 40px -18px color-mix(in srgb, var(--ink) 28%, transparent);
+  border: 0;
+  box-shadow: 0 18px 48px -20px color-mix(in srgb, var(--ink) 34%, transparent);
   padding: 2.4rem 1.6rem;
 }
 .big-date { font-family: var(--font-display); margin: 1rem 0; }
@@ -330,44 +343,45 @@ html.motion .orchid.bloomed .orchid-heart { transition-delay: 0.36s; }
 .orchid.bloomed .petal.lip { transition-delay: 0.26s; }
 .orchid.bloomed .orchid-heart { transition-delay: 0.36s; }
 
-/* ── Floating petal layer (created by motion.js, motion mode only) ── */
+/* ── Falling petal layer (created by motion.js, motion mode only) ────
+   One FIXED, viewport-sized layer rather than petals parented to a section.
+   Two reasons: petals then fall over every section by construction instead
+   of only the hero, and nothing has to be clipped to a section box — which
+   matters because .cluster-br and .cluster-hang deliberately overflow their
+   panels, so `overflow: hidden` on .panel was never an option.
+
+   z-index 1 puts the layer under main (z-index 2), so petals drift BEHIND
+   the type and behind the opaque .card faces, and show only over bare
+   paper. That's the depth we want: they're in the room, not on the lens. */
 .petal-layer {
-  position: absolute;
+  position: fixed;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
 }
-.petal-float {
-  position: absolute;
-  background: var(--rose-soft);
-  border-radius: 80% 20% 70% 30% / 60% 40% 70% 40%;
-  opacity: 0.5;
-  will-change: transform;
-}
-.petal-float:nth-child(3n) { background: var(--rose); opacity: 0.32; }
-.petal-float:nth-child(4n) {
-  background: var(--olive-light);
-  opacity: 0.3;
-  border-radius: 20% 80% 30% 70% / 40% 60% 40% 70%;
-}
-
-/* ── Ambient life layer ─────────────────────────────────────────── */
-.hero { overflow: hidden; }
-.hero-inner { position: relative; z-index: 2; }
 .petal-fall {
   position: absolute;
   top: 0;
-  width: 12px;
+  left: 0;
+  width: 13px;
   height: 17px;
   background: var(--rose-soft);
-  border-radius: 80% 20% 70% 30% / 60% 40% 70% 40%;
   opacity: 0.55;
   pointer-events: none;
-  z-index: 1;
   will-change: transform;
+  -webkit-mask-image: var(--petal-mask);
+  mask-image: var(--petal-mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
-.petal-fall.alt { background: var(--rose); opacity: 0.38; }
+.petal-fall.rose { background: var(--rose); opacity: 0.4; }
+.petal-fall.leaf { background: var(--olive-light); opacity: 0.34; }
+
+.hero { overflow: hidden; }
+.hero-inner { position: relative; z-index: 2; }
 
 /* Hero hairlines grow outward as they reveal (motion mode only). */
 html.motion .hero .rule { transform: translateY(24px) scaleX(0.12); }
@@ -380,4 +394,70 @@ html.motion .hero .rule { transform: translateY(24px) scaleX(0.12); }
 .choice-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
+/* ── Section advance ────────────────────────────────────────────────
+   No `scroll-snap-type` here, deliberately. CSS scroll-snap is POSITIONAL —
+   it settles on the NEAREST snap point — so right after a small scroll the
+   nearest point is the one the guest just left, and the page pulls them
+   backward. Measured on this page: a 90px and a 200px wheel from the hero
+   both returned to 0. "Advance to the NEXT section" is directional, which
+   CSS cannot express, so the intent is read in motion.js and issued there.
+
+   In motion mode the glide is a GSAP tween writing the scroll position each
+   frame, so `scroll-behavior` must be AUTO or the browser animates every one
+   of those per-frame writes and fights the tween. The smooth default at the
+   top of the file stays for the no-JS and reduced-motion paths. */
+html.motion { scroll-behavior: auto; }
+
+/* ── Full-screen sections ───────────────────────────────────────────
+   The celebration and the location each hold the screen alone, so the
+   advance lands on a composed page rather than on a card with the next
+   section's edge already creeping in. Padding drops because the height is
+   now the panel's job, not the padding's — and #location was 910px against
+   a 900px window, just tall enough to disqualify itself from advancing in
+   one move. At 100svh it fits exactly and advances like the rest.
+
+   #rsvp and #closing are here for a second reason. #closing was 554px tall
+   and started at 3453px on a page whose maximum scroll position was 3107 —
+   so its own top could never be reached, and the last advance quietly
+   stopped short. Giving it a full screen makes the last section land like
+   every other one. (#interlude is deliberately NOT in this list: it's the
+   wordless breath, and it stays short.) */
+#celebration,
+#location,
+#rsvp,
+#closing {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+/* ── Hero fit ───────────────────────────────────────────────────────
+   The hero IS the invitation — it has to land whole on a laptop fold, and
+   at 1280x900 it didn't: "FRIDAY" was clipped and the venue line fell below
+   the cut. Seven hairlines at 1.6rem of collapsed margin each were spending
+   ~350px on gaps alone. The hero runs a tighter rhythm than the rest of the
+   page, and tighter again on a short viewport. Placed last, and qualified
+   with .panel, so it beats the `@media (min-width: 700px) .panel` padding. */
+.panel.hero { padding-top: 3.4rem; padding-bottom: 3.4rem; }
+.hero .rule { margin: 1.05rem auto; }
+.hero .caps { margin: 0.7rem 0; }
+.hero .names-block { margin: 0.9rem 0; }
+.hero .script-word { margin: 0.3rem 0; }
+.hero .surname { margin: 0.3rem 0 0.7rem; }
+.hero .monogram { width: 82px; }
+
+@media (max-height: 860px) {
+  .panel.hero { padding-top: 2.6rem; padding-bottom: 2.6rem; }
+  .hero .rule { margin: 0.75rem auto; width: 7.5rem; }
+  .hero .caps { margin: 0.5rem 0; }
+  .hero .first-name { font-size: clamp(2.1rem, 7.5vw, 3.3rem); }
+  .hero .script-word { font-size: clamp(2.3rem, 9vw, 3.5rem); }
+  .hero .amp { font-size: 2rem; }
+  .hero .monogram { width: 68px; }
 }

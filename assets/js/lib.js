@@ -100,13 +100,25 @@ var InviteLib = (function () {
     return d;
   }
 
+  // Scroll-snap safety. A section gets a start-aligned snap point only if
+  // it fits the window. If it doesn't, that point sits above the content
+  // the guest is trying to read and drags them back to the top — the page
+  // feels stuck. `slack` allows a few pixels of overhang (sub-pixel
+  // rounding, a hairline border) without forfeiting the snap.
+  function shouldSnap(sectionHeight, viewportHeight, slack) {
+    if (!(sectionHeight > 0) || !(viewportHeight > 0)) return false;
+    var give = typeof slack === 'number' ? slack : 8;
+    return sectionHeight <= viewportHeight + give;
+  }
+
   return {
     normalizeName: normalizeName,
     levenshtein: levenshtein,
     matchGuest: matchGuest,
     countdownParts: countdownParts,
     buildWhatsAppUrl: buildWhatsAppUrl,
-    buildVinePath: buildVinePath
+    buildVinePath: buildVinePath,
+    shouldSnap: shouldSnap
   };
 })();
 if (typeof module !== 'undefined') module.exports = InviteLib;
