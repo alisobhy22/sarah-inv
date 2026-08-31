@@ -19,6 +19,11 @@
      so the fold reads as a crease rather than a painted line. Replaces the
      border-radius blobs, which at 12px read as smudges over the type. */
   --petal-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 32'%3E%3Cpath fill='%23fff' d='M12 .5C3.5 8.5.5 19 6 27.5c3.5 4.6 9.6 3.6 12.6-1C23.6 18 20.5 8.5 12 .5Z'/%3E%3Cpath fill='%23000' fill-opacity='.32' d='M12.6 3C9.4 10.6 8.6 20 11 28.8c.5 1.7 2.2 1.2 1.8-.4C10.6 20 11.3 11 14 4.2Z'/%3E%3C/svg%3E");
+
+  /* Hoisted so the closed card's face carries the same grain as the page it
+     opens onto — otherwise the seal sits on flat paper and the invitation
+     underneath is textured, which gives the trick away. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.44 0 0 0 0 0.36 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* ── Ground ─────────────────────────────────────────────────────── */
@@ -41,7 +46,7 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 3;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.44 0 0 0 0 0.36 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: var(--grain);
 }
 
 /* ── Layout ─────────────────────────────────────────────────────── */
@@ -556,4 +561,145 @@ html.motion { scroll-behavior: auto; }
   .cluster-tr { width: min(30vw, 120px); right: 2vw; opacity: 0.8; }
   #closing .cluster-bl { display: none; }
   .washes { opacity: 0.62; }   /* fewer florals, so the paper carries more */
+}
+
+/* ── The seal gate ──────────────────────────────────────────────────
+   An invitation doesn't arrive open. The page's closed face: two paper
+   leaves meeting at the centre, held by a wax seal bearing the monogram.
+   Tap breaks the wax and swings the leaves.
+
+   Everything here runs on CSS transitions, never GSAP. This layer covers
+   the entire screen, so if the CDN fails it still has to open — a guest
+   trapped behind a dead overlay has no invitation at all. */
+#seal-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 10;              /* above the plate frame (4) and the grain (3) */
+  perspective: 1400px;
+  transition: opacity 0.5s ease 0.9s, visibility 0s linear 1.4s;
+}
+html.gated,
+html.gated body { overflow: hidden; }   /* nothing scrolls behind a closed card */
+
+.gate-leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.4%;             /* a hair of overlap so no seam shows at the join */
+  background-color: var(--paper);
+  background-image: var(--grain);
+  transition: transform 0.9s cubic-bezier(.55, 0, .25, 1) 0.42s;
+  backface-visibility: hidden;
+}
+.gate-leaf.l { left: 0;  transform-origin: left center; }
+.gate-leaf.r { right: 0; transform-origin: right center; }
+
+/* The leaves are lit from the seam, so opening them catches the light the
+   way a card's inner face does as it lifts. */
+.gate-leaf::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, transparent 55%, color-mix(in srgb, var(--ink) 7%, transparent));
+  opacity: 0;
+  transition: opacity 0.9s ease 0.42s;
+}
+.gate-leaf.r::after { background: linear-gradient(to left, transparent 55%, color-mix(in srgb, var(--ink) 7%, transparent)); }
+
+.seal-button {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 1.6rem;
+  background: none;
+  border: 0;
+  padding: 2rem;
+  cursor: pointer;
+  transition: opacity 0.35s ease;
+}
+.seal-button:focus-visible { outline: 2px solid var(--rose); outline-offset: 6px; }
+
+.seal {
+  position: relative;
+  display: block;
+  width: clamp(104px, 26vw, 138px);
+  aspect-ratio: 1;
+  transition: transform 0.16s ease;
+}
+.seal-art {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  filter: drop-shadow(0 4px 6px color-mix(in srgb, var(--ink) 30%, transparent));
+}
+
+/* Each half carries the WHOLE seal and is clipped to its side of an
+   irregular crack, so the break runs through the wax and through the
+   monogram together — the letters split with the seal that bears them. */
+.seal-half { position: absolute; inset: 0; transition: transform 0.55s cubic-bezier(.3, .05, .5, 1), opacity 0.45s ease 0.12s; }
+/* The left half runs 0.8% PAST the crack and the right half paints over it.
+   Butt-jointed, the two clips left a hairline of paper showing through —
+   a seal that is visibly already cracked before anyone touches it. */
+.seal-half.l { clip-path: polygon(0 0, 51.6% 0, 47.6% 21%, 55.6% 34%, 46.6% 48%, 56.6% 61%, 47.6% 76%, 52.6% 100%, 0 100%); }
+.seal-half.r { clip-path: polygon(100% 0, 50% 0, 46% 21%, 54% 34%, 45% 48%, 55% 61%, 46% 76%, 51% 100%, 100% 100%); }
+
+.wax { fill: color-mix(in srgb, var(--magenta) 88%, #000); }   /* the rim, darker where wax pools */
+.wax-inner { fill: color-mix(in srgb, var(--magenta) 82%, #fff); }
+.wax-letter {
+  font-family: var(--font-display);
+  font-size: 42px;
+  fill: color-mix(in srgb, var(--magenta) 62%, #000);
+  opacity: 0.55;            /* pressed INTO the wax, not printed on it */
+}
+.seal-hint {
+  color: color-mix(in srgb, var(--olive) 80%, transparent);
+  margin: 0;
+}
+
+/* A slow breath, so the seal reads as the thing to touch. */
+@keyframes seal-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+.seal { animation: seal-breathe 3.4s ease-in-out 1.2s infinite; }
+
+#seal-gate.is-pressing .seal { transform: scale(0.93); animation: none; }
+
+#seal-gate.is-opening .seal { animation: none; }
+#seal-gate.is-opening .seal-half.l { transform: translate(-30px, 38px) rotate(-26deg); opacity: 0; }
+#seal-gate.is-opening .seal-half.r { transform: translate(30px, 44px) rotate(30deg); opacity: 0; }
+#seal-gate.is-opening .seal-hint { opacity: 0; transition: opacity 0.25s ease; }
+#seal-gate.is-opening .gate-leaf.l { transform: rotateY(-96deg); }
+#seal-gate.is-opening .gate-leaf.r { transform: rotateY(96deg); }
+#seal-gate.is-opening .gate-leaf::after { opacity: 1; }
+#seal-gate.is-opening { opacity: 0; visibility: hidden; }
+
+/* Reduced motion keeps the RITUAL and drops the theatre: the seal is still
+   there and still has to be tapped, but the gate simply fades. */
+@media (prefers-reduced-motion: reduce) {
+  .seal { animation: none; }
+  .gate-leaf, .seal-half, .gate-leaf::after { transition: none; }
+  #seal-gate { transition: opacity 0.4s ease, visibility 0s linear 0.4s; }
+  #seal-gate.is-opening { opacity: 0; visibility: hidden; }
+}
+
+/* The closed card carries the same plate mark as the invitation inside it —
+   without it the first screen is a seal floating on blank paper rather than a
+   card. It fades in the first quarter-second, so it's gone before the leaves
+   start to swing: a frame holding still while the paper it borders rotates
+   away reads as a mistake. (.page-frame itself is z-index 4, under the gate.) */
+#seal-gate::before,
+#seal-gate::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--olive) 24%, transparent);
+  transition: opacity 0.25s ease;
+}
+#seal-gate::before { inset: 13px; }
+#seal-gate::after  { inset: 18px; border-color: color-mix(in srgb, var(--olive) 11%, transparent); }
+#seal-gate.is-opening::before,
+#seal-gate.is-opening::after { opacity: 0; }
+
+@media (max-width: 599px) {
+  #seal-gate::before { inset: 8px; }
+  #seal-gate::after  { inset: 12px; }
 }

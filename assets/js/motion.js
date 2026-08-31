@@ -148,8 +148,25 @@
       .from('.cluster-r', { xPercent: 24, rotation: -6, duration: 1.4 }, '<')
       .to('.hero [data-reveal]', { opacity: 1, y: 0, stagger: 0.12, duration: 0.8 }, '-=0.8')
       .to('.hero .rule', { scaleX: 1, stagger: 0.1, duration: 0.7, ease: 'power2.out' }, '-=0.9');
+    return tl;
   }
-  wireHeroEntrance();
+  // Held when the seal gate is present, so the bouquet unfolds INTO the
+  // opening card rather than playing out behind a closed one — by the time
+  // the leaves clear, the names are already settling. envelope.js calls this.
+  // Idempotent, so a double tap can't run the entrance twice.
+  var heroPlayed = false;
+  // `speed` lets the gate run the entrance faster than it plays on a plain
+  // load. Traced: the timeline spends its first 1.3s on the monogram and the
+  // clusters before any [data-reveal] text begins. That's right when the hero
+  // IS the first impression — but behind an opening card it means the leaves
+  // clear onto blank paper for the better part of a second.
+  window.playHeroEntrance = function (speed) {
+    if (heroPlayed) return;
+    heroPlayed = true;
+    var tl = wireHeroEntrance();
+    if (tl && speed) tl.timeScale(speed);
+  };
+  if (!document.getElementById('seal-gate')) window.playHeroEntrance();
 
   // Pins the hero elements at their settled, fully-revealed state. Used
   // on a width-change rebuild so the one-time entrance never replays.
@@ -333,6 +350,10 @@
   // merely reading it could never advance to the closing, since the pointer
   // sits inside that section whenever it fills the screen.
   function exempt() {
+    // Nothing advances while the card is still closed. The gate blocks the
+    // view but not the wheel, so without this a scroll over the seal would
+    // silently move the invitation underneath it.
+    if (document.documentElement.classList.contains('gated')) return true;
     var el = document.activeElement;
     return !!(el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
   }
