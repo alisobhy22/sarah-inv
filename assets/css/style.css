@@ -563,143 +563,223 @@ html.motion { scroll-behavior: auto; }
   .washes { opacity: 0.62; }   /* fewer florals, so the paper carries more */
 }
 
-/* ── The seal gate ──────────────────────────────────────────────────
-   An invitation doesn't arrive open. The page's closed face: two paper
-   leaves meeting at the centre, held by a wax seal bearing the monogram.
-   Tap breaks the wax and swings the leaves.
 
-   Everything here runs on CSS transitions, never GSAP. This layer covers
-   the entire screen, so if the CDN fails it still has to open — a guest
-   trapped behind a dead overlay has no invitation at all. */
+/* ── The envelope ───────────────────────────────────────────────────
+   An invitation doesn't arrive open, and it doesn't arrive as a bare card
+   either — it arrives in an envelope. So the gate is a SURFACE with an
+   object lying on it, not a full-bleed sheet: that's what lets the flap
+   read as a flap and gives the opening a real physical motion.
+
+   Everything moves on CSS transitions, never GSAP. This layer covers the
+   whole screen, so if the CDN fails it must still open — a guest stuck
+   behind a closed envelope has no invitation at all. */
 #seal-gate {
   position: fixed;
   inset: 0;
-  z-index: 10;              /* above the plate frame (4) and the grain (3) */
-  perspective: 1400px;
-  transition: opacity 0.5s ease 0.9s, visibility 0s linear 1.4s;
+  z-index: 10;
+  display: grid;
+  place-content: center;
+  gap: 2.2rem;
+  /* The surface the envelope lies on: a shade deeper than the paper, with a
+     vignette, so the envelope reads as sitting ON something. */
+  background:
+    radial-gradient(120% 90% at 50% 42%,
+      color-mix(in srgb, var(--paper) 94%, #fff) 0%,
+      color-mix(in srgb, var(--paper) 88%, var(--ink)) 100%);
+  transition: opacity 0.55s ease 1.6s, visibility 0s linear 2.15s;
 }
 html.gated,
-html.gated body { overflow: hidden; }   /* nothing scrolls behind a closed card */
+html.gated body { overflow: hidden; }   /* nothing scrolls behind a sealed envelope */
 
-.gate-leaf {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 50.4%;             /* a hair of overlap so no seam shows at the join */
-  background-color: var(--paper);
-  background-image: var(--grain);
-  transition: transform 0.9s cubic-bezier(.55, 0, .25, 1) 0.42s;
-  backface-visibility: hidden;
+.envelope {
+  position: relative;
+  width: min(78vw, 460px);
+  aspect-ratio: 1.45;          /* invitation-envelope proportions, landscape */
+  perspective: 1100px;
+  /* Flat rendering, NOT transform-style: preserve-3d. The flap and the card
+     are intersecting planes, and browsers depth-sort whole elements rather
+     than splitting them per-pixel — so the open flap kept painting over the
+     card coming out past it, whatever Z either was given. Flat, the stack is
+     plain z-index, and the flap steps its z-index mid-rotation (see
+     @keyframes flap-open) to pass behind the card exactly once. */
+  /* The zoom waits for the card to finish rising. Started at 1.15s it ran
+     over the top of that beat and threw it away. */
+  transition: transform 0.75s cubic-bezier(.6, 0, .35, 1) 1.45s,
+              opacity 0.6s ease 1.6s;
 }
-.gate-leaf.l { left: 0;  transform-origin: left center; }
-.gate-leaf.r { right: 0; transform-origin: right center; }
 
-/* The leaves are lit from the seam, so opening them catches the light the
-   way a card's inner face does as it lifts. */
-.gate-leaf::after {
-  content: "";
+/* The card inside. It starts fully behind the envelope back and rises just
+   far enough to prove it was in there — the whole point of an envelope. */
+.env-card {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 8%;
+  bottom: 6%;
+  background: var(--paper-raised);
+  z-index: 1;
+  box-shadow: 0 -2px 10px -4px color-mix(in srgb, var(--ink) 35%, transparent);
+  display: grid;
+  /* The monogram sits near the TOP of the card, because the top is the only
+     part that ever emerges — centred, it stayed inside the sleeve and the
+     card came out as a blank strip. */
+  place-content: start center;
+  padding-top: 7%;
+  transform: translateY(0);
+  transition: transform 0.6s cubic-bezier(.3, .8, .4, 1) 0.95s;
+}
+.env-card-mono { width: 54px; height: auto; opacity: 0.5; }
+
+/* The envelope back, lapped over the card. */
+.env-back {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, transparent 55%, color-mix(in srgb, var(--ink) 7%, transparent));
-  opacity: 0;
-  transition: opacity 0.9s ease 0.42s;
+  background-color: var(--paper-raised);
+  background-image: var(--grain);
+  box-shadow:
+    0 22px 40px -18px color-mix(in srgb, var(--ink) 45%, transparent),
+    0 2px 5px -2px color-mix(in srgb, var(--ink) 30%, transparent);
+  overflow: hidden;
+  z-index: 2;                   /* the sleeve, in front of the card inside it */
 }
-.gate-leaf.r::after { background: linear-gradient(to left, transparent 55%, color-mix(in srgb, var(--ink) 7%, transparent)); }
+/* The three folds an envelope's paper actually makes. Hairlines, not edges. */
+.env-fold {
+  position: absolute;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.env-fold.l, .env-fold.r { top: 0; width: 1px; height: 141%; transform-origin: top; }
+.env-fold.l { left: 0;  transform: rotate(-54.5deg); }
+.env-fold.r { right: 0; transform: rotate(54.5deg); }
+.env-fold.b { left: 0; right: 0; bottom: 34%; height: 1px; opacity: 0.55; }
+
+/* The triangular top flap, hinged on its top edge — the motion an envelope
+   actually makes, and the reason this reads as an envelope and not a card. */
+.env-flap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 66%;
+  transform-origin: top center;
+  transform: rotateX(0deg);
+  z-index: 3;                   /* closed, the flap laps over the sleeve */
+}
+.env-flap-face {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background-color: color-mix(in srgb, var(--paper-raised) 96%, var(--ink));
+  background-image: var(--grain);
+}
 
 .seal-button {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 66%;                   /* the flap's point */
   transform: translate(-50%, -50%);
-  display: grid;
-  justify-items: center;
-  gap: 1.6rem;
+  z-index: 4;
   background: none;
   border: 0;
-  padding: 2rem;
+  padding: 1.4rem;
   cursor: pointer;
-  transition: opacity 0.35s ease;
+  line-height: 0;
 }
-.seal-button:focus-visible { outline: 2px solid var(--rose); outline-offset: 6px; }
+.seal-button:focus-visible { outline: 2px solid var(--rose); outline-offset: 4px; }
 
 .seal {
   position: relative;
   display: block;
-  width: clamp(104px, 26vw, 138px);
+  width: clamp(62px, 15vw, 84px);
   aspect-ratio: 1;
   transition: transform 0.16s ease;
 }
 .seal-art {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  filter: drop-shadow(0 4px 6px color-mix(in srgb, var(--ink) 30%, transparent));
+  filter: drop-shadow(0 3px 5px color-mix(in srgb, var(--ink) 34%, transparent));
 }
 
 /* Each half carries the WHOLE seal and is clipped to its side of an
-   irregular crack, so the break runs through the wax and through the
-   monogram together — the letters split with the seal that bears them. */
+   irregular crack, so the break runs through the wax and the monogram
+   together. The left half runs 1.6% PAST the crack and the right paints
+   over it — butt-jointed, the two clips left a hairline of the flap showing
+   through, which is a seal visibly cracked before anyone touches it. */
 .seal-half { position: absolute; inset: 0; transition: transform 0.55s cubic-bezier(.3, .05, .5, 1), opacity 0.45s ease 0.12s; }
-/* The left half runs 0.8% PAST the crack and the right half paints over it.
-   Butt-jointed, the two clips left a hairline of paper showing through —
-   a seal that is visibly already cracked before anyone touches it. */
 .seal-half.l { clip-path: polygon(0 0, 51.6% 0, 47.6% 21%, 55.6% 34%, 46.6% 48%, 56.6% 61%, 47.6% 76%, 52.6% 100%, 0 100%); }
 .seal-half.r { clip-path: polygon(100% 0, 50% 0, 46% 21%, 54% 34%, 45% 48%, 55% 61%, 46% 76%, 51% 100%, 100% 100%); }
 
-.wax { fill: color-mix(in srgb, var(--magenta) 88%, #000); }   /* the rim, darker where wax pools */
+.wax { fill: color-mix(in srgb, var(--magenta) 88%, #000); }   /* rim, where wax pools */
 .wax-inner { fill: color-mix(in srgb, var(--magenta) 82%, #fff); }
 .wax-letter {
   font-family: var(--font-display);
   font-size: 42px;
   fill: color-mix(in srgb, var(--magenta) 62%, #000);
-  opacity: 0.55;            /* pressed INTO the wax, not printed on it */
+  opacity: 0.55;              /* pressed INTO the wax, not printed on it */
 }
+
 .seal-hint {
   color: color-mix(in srgb, var(--olive) 80%, transparent);
   margin: 0;
+  text-align: center;
+  transition: opacity 0.25s ease;
 }
 
 /* A slow breath, so the seal reads as the thing to touch. */
-@keyframes seal-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@keyframes seal-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }
 .seal { animation: seal-breathe 3.4s ease-in-out 1.2s infinite; }
 
+/* ── Opening ────────────────────────────────────────────────────────
+   1. the wax presses and breaks        2. the flap swings up and back
+   3. the card rises out of the sleeve  4. the whole thing comes at you
+      and dissolves, so you end up INSIDE the envelope rather than
+      watching it disappear. */
 #seal-gate.is-pressing .seal { transform: scale(0.93); animation: none; }
 
 #seal-gate.is-opening .seal { animation: none; }
-#seal-gate.is-opening .seal-half.l { transform: translate(-30px, 38px) rotate(-26deg); opacity: 0; }
-#seal-gate.is-opening .seal-half.r { transform: translate(30px, 44px) rotate(30deg); opacity: 0; }
-#seal-gate.is-opening .seal-hint { opacity: 0; transition: opacity 0.25s ease; }
-#seal-gate.is-opening .gate-leaf.l { transform: rotateY(-96deg); }
-#seal-gate.is-opening .gate-leaf.r { transform: rotateY(96deg); }
-#seal-gate.is-opening .gate-leaf::after { opacity: 1; }
+#seal-gate.is-opening .seal-half.l { transform: translate(-26px, 34px) rotate(-26deg); opacity: 0; }
+#seal-gate.is-opening .seal-half.r { transform: translate(26px, 40px) rotate(30deg); opacity: 0; }
+#seal-gate.is-opening .seal-hint { opacity: 0; }
+/* translateZ FIRST, and negative. Closed, the flap laps OVER the back (z 2 vs
+   1). Open, it has to fall BEHIND the card that comes out past it — browsers
+   sort whole elements by transformed position, not per-pixel, so a flap left
+   at z 2 kept painting over the emerging card no matter how far it rotated.
+   Pushed to z -4 the order becomes back (1) > card (0) > flap (-4): the card
+   clears the flap, and the sleeve still covers its lower half. */
+#seal-gate.is-opening .env-flap { animation: flap-open 0.72s cubic-bezier(.5, 0, .3, 1) 0.36s forwards; }
+#seal-gate.is-opening .env-card { transform: translateY(-44%); }
+#seal-gate.is-opening .envelope { transform: scale(2.9); opacity: 0; }
 #seal-gate.is-opening { opacity: 0; visibility: hidden; }
 
-/* Reduced motion keeps the RITUAL and drops the theatre: the seal is still
-   there and still has to be tapped, but the gate simply fades. */
+/* Mobile first: the envelope takes nearly the width, and the seal grows
+   relative to it so it stays an easy, obvious target. */
+@media (max-width: 599px) {
+  #seal-gate { gap: 1.6rem; }
+  .envelope { width: 88vw; }
+  .seal { width: clamp(58px, 17vw, 76px); }
+}
+
+/* Reduced motion keeps the RITUAL and drops the theatre: the envelope is
+   still there and still has to be tapped, but nothing swings — it fades. */
 @media (prefers-reduced-motion: reduce) {
   .seal { animation: none; }
-  .gate-leaf, .seal-half, .gate-leaf::after { transition: none; }
+  .env-flap, .env-card, .envelope, .seal-half { transition: none; }
   #seal-gate { transition: opacity 0.4s ease, visibility 0s linear 0.4s; }
+  #seal-gate.is-opening .env-flap,
+  #seal-gate.is-opening .env-card,
+  #seal-gate.is-opening .envelope { transform: none; opacity: 1; }
   #seal-gate.is-opening { opacity: 0; visibility: hidden; }
 }
 
-/* The closed card carries the same plate mark as the invitation inside it —
-   without it the first screen is a seal floating on blank paper rather than a
-   card. It fades in the first quarter-second, so it's gone before the leaves
-   start to swing: a frame holding still while the paper it borders rotates
-   away reads as a mistake. (.page-frame itself is z-index 4, under the gate.) */
-#seal-gate::before,
-#seal-gate::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  border: 1px solid color-mix(in srgb, var(--olive) 24%, transparent);
-  transition: opacity 0.25s ease;
+/* The flap passes behind the card exactly once, at the halfway point of its
+   swing. z-index isn't interpolatable, so a keyframe steps it — which is
+   deterministic, unlike asking the compositor to depth-sort two intersecting
+   planes. Closed it laps over the sleeve; open it lies behind everything. */
+@keyframes flap-open {
+  0%   { transform: rotateX(0deg);    z-index: 3; }
+  49%  {                              z-index: 3; }
+  50%  {                              z-index: 0; }
+  100% { transform: rotateX(-168deg); z-index: 0; }
 }
-#seal-gate::before { inset: 13px; }
-#seal-gate::after  { inset: 18px; border-color: color-mix(in srgb, var(--olive) 11%, transparent); }
-#seal-gate.is-opening::before,
-#seal-gate.is-opening::after { opacity: 0; }
 
-@media (max-width: 599px) {
-  #seal-gate::before { inset: 8px; }
-  #seal-gate::after  { inset: 12px; }
+@media (prefers-reduced-motion: reduce) {
+  #seal-gate.is-opening .env-flap { animation: none; }
 }

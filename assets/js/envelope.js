@@ -1,4 +1,4 @@
-// The seal gate: breaking the wax and swinging the card open.
+// The envelope: breaking the wax, lifting the flap, and going inside.
 //
 // Deliberately dependency-free and NOT deferred. This script owns the only
 // way past a full-screen overlay, so it must not wait on the GSAP CDN and
@@ -23,7 +23,7 @@
   // ~800ms — so at normal speed the doors opened onto blank paper for over
   // half a second. At 1.45x the reveals begin as the leaves clear.
   var HERO_SPEED = 1.45;
-  var DONE_MS = 1700;   // everything landed; the gate can leave the document
+  var DONE_MS = 2400;   // flap, card rise and the zoom have all landed
 
   function remember() {
     try { localStorage.setItem(STORE_KEY, '1'); } catch (e) { /* private mode */ }
