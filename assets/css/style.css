@@ -939,40 +939,53 @@ html.gated body { overflow: hidden; }
   white-space: nowrap;
 }
 
-/* Choosing from a list, not typing. Styled as paper rather than as a
-   browser control, but still a native <select> — the OS picker is the
-   most usable thing on a phone and nothing hand-built beats it. */
-#guest-select {
+@media (max-width: 599px) {
+  .rsvp-inner .body-note { max-width: none; }
+}
+
+/* ── Replying for other people ──────────────────────────────────────
+   A row per extra person: their name, their own answer, and a way to
+   take the row back out. */
+.party {
+  margin-top: 1.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid color-mix(in srgb, var(--olive) 18%, transparent);
+  text-align: left;
+}
+.party-label { margin: 0 0 0.5rem; }
+.party-list { list-style: none; padding: 0; margin: 0; }
+
+.party-row {
+  display: grid;
+  /* name takes the room; the answer and the remove control take only what
+     they need, so the name field never shrinks to a stub on a phone */
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0;
+}
+.party-name {
   width: 100%;
   font-family: var(--font-body);
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--ink);
-  background-color: var(--paper);
-  border: 1px solid color-mix(in srgb, var(--olive) 35%, transparent);
-  padding: 0.85rem 2.6rem 0.85rem 1rem;
-  appearance: none;
-  -webkit-appearance: none;
-  border-radius: 0;
-  cursor: pointer;
-  /* the chevron, drawn rather than imported */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%236A7A42' stroke-width='1.4' d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 12px 8px;
+  background: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--olive) 30%, transparent);
+  padding: 0.6rem 0.8rem;
 }
-#guest-select:focus-visible { outline: 3px solid var(--rose-soft); outline-offset: 2px; }
+.party-name:focus-visible { outline: 3px solid var(--rose-soft); outline-offset: 2px; }
 
-/* One row per person on the invitation, each answering for themselves. */
-.group-members li {
-  display: flex;
+.party-coming {
+  display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--olive) 12%, transparent);
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: color-mix(in srgb, var(--ink) 80%, transparent);
+  cursor: pointer;
+  white-space: nowrap;
 }
-.group-members li:last-child { border-bottom: 0; }
-.member-check,
-.plus-one input {
+.party-check {
   appearance: none;
   -webkit-appearance: none;
   width: 1.15rem;
@@ -986,8 +999,7 @@ html.gated body { overflow: hidden; }
   place-content: center;
   transition: background 0.18s ease, border-color 0.18s ease;
 }
-.member-check::after,
-.plus-one input::after {
+.party-check::after {
   content: "";
   width: 0.62rem;
   height: 0.34rem;
@@ -996,25 +1008,37 @@ html.gated body { overflow: hidden; }
   transform: rotate(-45deg) translateY(-1px) scale(0);
   transition: transform 0.18s cubic-bezier(.2, .9, .3, 1.4);
 }
-.member-check:checked,
-.plus-one input:checked { background: var(--rose); border-color: var(--rose); }
-.member-check:checked::after,
-.plus-one input:checked::after { transform: rotate(-45deg) translateY(-1px) scale(1); }
-.member-check:focus-visible,
-.plus-one input:focus-visible { outline: 3px solid var(--rose-soft); outline-offset: 2px; }
-.group-members label { cursor: pointer; }
+.party-check:checked { background: var(--rose); border-color: var(--rose); }
+.party-check:checked::after { transform: rotate(-45deg) translateY(-1px) scale(1); }
+.party-check:focus-visible { outline: 3px solid var(--rose-soft); outline-offset: 2px; }
 
-.plus-one {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin-top: 1rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid color-mix(in srgb, var(--olive) 18%, transparent);
+.party-remove {
+  background: none;
+  border: 0;
   cursor: pointer;
-  font-style: italic;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+  color: color-mix(in srgb, var(--ink) 45%, transparent);
+  transition: color 0.2s ease;
 }
+.party-remove:hover { color: var(--magenta); }
+.party-remove:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
 
-@media (max-width: 599px) {
-  .rsvp-inner .body-note { max-width: none; }
+#add-person { margin-top: 0.4rem; }
+
+/* On a narrow screen the name gets the full width and its answer sits
+   under it — three controls across 320px would squeeze the name field to
+   nothing. */
+@media (max-width: 479px) {
+  .party-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name   remove"
+      "coming coming";
+    gap: 0.4rem 0.6rem;
+  }
+  .party-name   { grid-area: name; }
+  .party-remove { grid-area: remove; }
+  .party-coming { grid-area: coming; }
 }

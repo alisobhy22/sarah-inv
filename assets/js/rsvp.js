@@ -2,147 +2,106 @@
   'use strict';
   var cfg = window.INVITE_CONFIG;
   var $ = function (id) { return document.getElementById(id); };
-  var form = $('rsvp-form'), select = $('guest-select'), status = $('lookup-status');
-  var groupCard = $('group-card'), groupLabel = $('group-label'), groupMembers = $('group-members');
-  var plusOne = $('plus-one');
-  var choice = $('choice'), submitBtn = $('rsvp-submit'), errorEl = $('rsvp-error'), doneEl = $('rsvp-done');
+  var form = $('rsvp-form'), nameInput = $('guest-name');
+  var partyList = $('party-list'), addBtn = $('add-person');
+  var submitBtn = $('rsvp-submit'), errorEl = $('rsvp-error'), doneEl = $('rsvp-done');
 
-  var state = { group: null, retried: false };
+  var state = { retried: false, rows: 0 };
 
   $('maps-link').href = cfg.mapsUrl;
 
-  // ── The guest list ────────────────────────────────────────────
-  // Choosing from a list rather than typing removes the entire class of
-  // problem the old fuzzy matcher existed to paper over: spelling, Arabic
-  // transliteration, "which name is on my invitation". You cannot mistype
-  // a name you tapped.
-  var groups = {};       // group id -> { label, members: [name] }
-  (cfg.guests || []).forEach(function (g) {
-    if (!groups[g.group]) groups[g.group] = { id: g.group, label: g.label, members: [] };
-    groups[g.group].members.push(g.name);
-  });
+  // ── Replying for other people ─────────────────────────────────
+  // A row per extra person, each carrying its OWN answer rather than
+  // inheriting the main guest's. One half of a couple coming while the
+  // other can't is an ordinary thing, and a single party-wide yes/no
+  // cannot express it.
+  function addRow(name, coming) {
+    var i = state.rows++;
+    var li = document.createElement('li');
+    li.className = 'party-row';
 
-  function buildList() {
-    var ids = Object.keys(groups);
-    if (!ids.length) {
-      status.textContent = 'The guest list is still being prepared — please check back shortly.';
-      select.disabled = true;
-      return;
-    }
-    // Grouped by party, so a guest sees their own family as a heading and
-    // finds themselves by household rather than scanning one long list.
-    ids.sort(function (a, b) { return groups[a].label.localeCompare(groups[b].label); })
-      .forEach(function (id) {
-        var og = document.createElement('optgroup');
-        og.label = groups[id].label;
-        groups[id].members.slice().sort().forEach(function (name) {
-          var o = document.createElement('option');
-          o.value = id + '|' + name;
-          o.textContent = name;
-          og.appendChild(o);
-        });
-        select.appendChild(og);
-      });
-  }
-  buildList();
+    var field = document.createElement('input');
+    field.type = 'text';
+    field.className = 'party-name';
+    field.placeholder = 'Their name';
+    field.autocapitalize = 'words';
+    field.setAttribute('aria-label', 'Name of guest ' + (i + 1));
+    if (name) field.value = name;
 
-  // ── Choosing a name ───────────────────────────────────────────
-  select.addEventListener('change', function () {
-    var v = select.value;
-    if (!v) { setGroup(null); return; }
-    var parts = v.split('|');
-    var g = groups[parts[0]];
-    setGroup({ groupId: g.id, label: g.label, members: g.members, chosen: parts[1] });
-  });
+    var toggle = document.createElement('label');
+    toggle.className = 'party-coming';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'party-check';
+    cb.checked = coming !== false;
+    cb.id = 'party-check-' + i;
+    var cbText = document.createElement('span');
+    cbText.textContent = 'Coming';
+    toggle.appendChild(cb);
+    toggle.appendChild(cbText);
 
-  function setGroup(g) {
-    state.group = g;
-    if (!g) {
-      groupCard.hidden = true;
-      choice.hidden = true;
-      submitBtn.hidden = true;
-      status.textContent = '';
-      return;
-    }
-    groupLabel.textContent = g.label;
-    groupMembers.innerHTML = '';
+    var remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'party-remove';
+    remove.setAttribute('aria-label', 'Remove this person');
+    remove.textContent = '×';
+    remove.addEventListener('click', function () { li.remove(); });
 
-    // One row per person on the invitation, each with their own answer, so
-    // a family replies once and nobody is assumed in or out. The person who
-    // picked their own name starts ticked; everyone else starts ticked too,
-    // since the common case is the whole party coming — unticking is the
-    // rarer, deliberate act.
-    g.members.forEach(function (name, i) {
-      var li = document.createElement('li');
-      var id = 'member-' + i;
-      var cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.id = id;
-      cb.className = 'member-check';
-      cb.checked = true;
-      cb.value = name;
-      var label = document.createElement('label');
-      label.htmlFor = id;
-      label.textContent = name;
-      li.appendChild(cb);
-      li.appendChild(label);
-      groupMembers.appendChild(li);
-    });
-
-    plusOne.checked = false;
-    choice.hidden = false;
-    submitBtn.hidden = false;
-    status.textContent = '';
-    syncMemberState();
+    li.appendChild(field);
+    li.appendChild(toggle);
+    li.appendChild(remove);
+    partyList.appendChild(li);
+    field.focus();
   }
 
-  // Declining hides the who's-coming detail — there is nobody to list.
-  function syncMemberState() {
-    var picked = form.querySelector('input[name="attending"]:checked');
-    var yes = picked && picked.value === 'yes';
-    groupCard.hidden = !(state.group && yes);
+  addBtn.addEventListener('click', function () { addRow('', true); });
+
+  function readParty() {
+    return [].slice.call(partyList.querySelectorAll('.party-row'))
+      .map(function (row) {
+        return {
+          name: row.querySelector('.party-name').value.trim(),
+          attending: row.querySelector('.party-check').checked
+        };
+      })
+      // A row left blank is someone the guest started adding and thought
+      // better of — drop it rather than submitting an empty name.
+      .filter(function (p) { return p.name; });
   }
-  form.addEventListener('change', function (ev) {
-    if (ev.target.name === 'attending') syncMemberState();
-  });
 
   // ── Submit ────────────────────────────────────────────────────
   form.addEventListener('submit', function (ev) {
     ev.preventDefault();
     errorEl.hidden = true;
 
-    if (!state.group) { showError('Please find your name in the list.'); return; }
-    var attending = form.querySelector('input[name="attending"]:checked');
-    if (!attending) { showError('Please choose one of the two options.'); return; }
-    var isYes = attending.value === 'yes';
+    var name = nameInput.value.trim();
+    if (!name) { showError('Please tell us your name.'); nameInput.focus(); return; }
 
-    var coming = [].slice.call(groupMembers.querySelectorAll('.member-check'))
-      .filter(function (c) { return c.checked; })
-      .map(function (c) { return c.value; });
+    var picked = form.querySelector('input[name="attending"]:checked');
+    if (!picked) { showError('Please let us know whether you can make it.'); return; }
+    var isYes = picked.value === 'yes';
 
-    if (isYes && !coming.length) {
-      showError('Please tick at least one person who is coming, or choose “Regretfully declines”.');
-      return;
-    }
+    var party = readParty();
+    var everyone = [{ name: name, attending: isYes }].concat(party);
+    var coming = everyone.filter(function (p) { return p.attending; }).map(function (p) { return p.name; });
 
-    var partySize = isYes ? coming.length + (plusOne.checked ? 1 : 0) : 0;
     var payload = {
-      groupId: state.group.groupId,
-      label: state.group.label,
-      members: isYes ? coming : [],
-      partySize: partySize,
-      plusOne: isYes && plusOne.checked,
-      attending: isYes,
-      submittedBy: state.group.chosen,
+      groupId: '',
+      label: name,
+      members: coming,                 // who is actually coming
+      partySize: coming.length,
+      attending: coming.length > 0,    // the reply counts if ANYONE is coming
+      guests: everyone,                // full detail, one line per person
+      submittedBy: name,
       website: $('website').value
     };
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending…';
-    send(payload, isYes);
+    send(payload, coming.length > 0);
   });
 
-  function send(payload, isYes) {
+  function send(payload, anyoneComing) {
     // No endpoint configured yet: the flow still has to complete rather than
     // fail silently, so the reply is handed to WhatsApp instead.
     if (!cfg.appsScriptUrl || cfg.appsScriptUrl.indexOf('PASTE_') === 0) {
@@ -157,10 +116,10 @@
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (!res.ok) throw new Error('server said no');
-        showDone(payload, isYes);
+        showDone(payload, anyoneComing);
       })
       .catch(function () {
-        if (!state.retried) { state.retried = true; send(payload, isYes); return; }
+        if (!state.retried) { state.retried = true; send(payload, anyoneComing); return; }
         offerWhatsApp(payload, 'We couldn’t reach the guest book. ');
       });
   }
@@ -180,11 +139,14 @@
     errorEl.hidden = false;
   }
 
-  function showDone(payload, isYes) {
+  function showDone(payload, anyoneComing) {
     form.hidden = true;
     doneEl.hidden = false;
-    $('done-message').textContent = isYes
-      ? 'We can’t wait to celebrate with you on October 9th.'
+    var n = payload.partySize;
+    $('done-message').textContent = anyoneComing
+      ? (n > 1
+        ? 'All ' + n + ' of you — we can’t wait to celebrate on October 9th.'
+        : 'We can’t wait to celebrate with you on October 9th.')
       : 'We’ll miss you — thank you for letting us know.';
     if (window.bloomOrchid) window.bloomOrchid();
     doneEl.scrollIntoView({ behavior: 'smooth', block: 'center' });

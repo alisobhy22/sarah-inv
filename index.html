@@ -12,14 +12,14 @@
        olive serif on cream turns to mud, while a saturated disc survives any
        size. SVG first for crispness, PNGs behind it for the browsers and the
        iOS home screen that still want raster. -->
-  <link rel="icon" href="assets/img/favicon.svg?v=34" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png?v=34" sizes="32x32" type="image/png">
-  <link rel="icon" href="assets/img/favicon-16.png?v=34" sizes="16x16" type="image/png">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png?v=34">
+  <link rel="icon" href="assets/img/favicon.svg?v=37" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon-32.png?v=37" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/img/favicon-16.png?v=37" sizes="16x16" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png?v=37">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Great+Vibes&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=34">
+  <link rel="stylesheet" href="assets/css/style.css?v=37">
 </head>
 <body>
   <!-- The closed card. Removed before first paint for a guest who has already
@@ -118,8 +118,8 @@
   <main>
     <!-- ══ 1 · Names ═══════════════════════════════════════════ -->
     <section id="names" class="panel hero">
-      <img class="cluster cluster-tl" src="assets/img/cluster-top-left.svg?v=34" alt="" aria-hidden="true" width="420" height="480">
-      <img class="cluster cluster-r" src="assets/img/cluster-right.svg?v=34" alt="" aria-hidden="true" width="260" height="620" loading="lazy">
+      <img class="cluster cluster-tl" src="assets/img/cluster-top-left.svg?v=37" alt="" aria-hidden="true" width="420" height="480">
+      <img class="cluster cluster-r" src="assets/img/cluster-right.svg?v=37" alt="" aria-hidden="true" width="260" height="620" loading="lazy">
       <div class="hero-inner">
         <svg class="monogram" viewBox="0 0 120 80" role="img" aria-label="A and S monogram" data-reveal>
           <text x="30" y="60" class="mono-letter">A</text>
@@ -146,12 +146,12 @@
 
     <!-- ══ 2 · Interlude — deliberate silence ══════════════════ -->
     <section id="interlude" class="panel interlude" aria-hidden="true">
-      <img class="cluster cluster-hang" src="assets/img/cluster-amaranthus.svg?v=34" alt="" width="220" height="520" loading="lazy">
+      <img class="cluster cluster-hang" src="assets/img/cluster-amaranthus.svg?v=37" alt="" width="220" height="520" loading="lazy">
     </section>
 
     <!-- ══ 3 · Location ════════════════════════════════════════ -->
     <section id="location" class="panel">
-      <img class="cluster cluster-tr" src="assets/img/cluster-amaranthus.svg?v=34" alt="" aria-hidden="true" width="220" height="520" loading="lazy">
+      <img class="cluster cluster-tr" src="assets/img/cluster-amaranthus.svg?v=37" alt="" aria-hidden="true" width="220" height="520" loading="lazy">
       <div class="card map-card" data-reveal>
         <p class="caps small">Location Details</p>
         <hr class="rule">
@@ -186,7 +186,6 @@
             </g>
           </g>
           <!-- labels -->
-          <text class="map-label" x="58" y="178">LAKE MARIOUT</text>
           <text class="map-label" x="182" y="26">TO ALEXANDRIA</text>
         </svg>
         <p class="venue-name caps">King Mariout</p>
@@ -197,23 +196,20 @@
 
     <!-- ══ 4 · RSVP ════════════════════════════════════════════ -->
     <section id="rsvp" class="panel">
-      <img class="cluster cluster-br" src="assets/img/cluster-bottom-right.svg?v=34" alt="" aria-hidden="true" width="380" height="420" loading="lazy">
+      <img class="cluster cluster-br" src="assets/img/cluster-bottom-right.svg?v=37" alt="" aria-hidden="true" width="380" height="420" loading="lazy">
       <div class="card rsvp-inner" data-reveal>
         <p class="caps">RSVP</p>
         <hr class="rule">
         <p class="body-note">We've waited so long for this! Please let us know if you're coming, and RSVP by <strong>September 20th</strong> at the latest.</p>
-        <p class="body-note">Got a plus-one? Bring them along — we'd love to have you both there. Can't wait to celebrate with you!</p>
+        <p class="body-note">Got a plus-one? Bring them along — Can't wait to celebrate with you!</p>
         <hr class="rule">
         <form id="rsvp-form" novalidate>
           <div class="field">
-            <label for="guest-select">Find your name</label>
-            <select id="guest-select" name="name" required>
-              <option value="">Select your name…</option>
-            </select>
-            <p class="hint" id="lookup-status" aria-live="polite"></p>
+            <label for="guest-name">Your name</label>
+            <input id="guest-name" name="name" type="text" autocomplete="name" autocapitalize="words" placeholder="Your full name" required>
           </div>
 
-          <fieldset id="choice" class="choice" hidden>
+          <fieldset id="choice" class="choice">
             <legend class="visually-hidden">Will you attend?</legend>
             <label class="choice-card">
               <input type="radio" name="attending" value="yes">
@@ -227,19 +223,17 @@
             </label>
           </fieldset>
 
-          <!-- Answer for the whole party in one go: everyone on the guest's
-               invitation, each with their own yes/no. -->
-          <div id="group-card" class="group-card" hidden>
-            <p class="group-label" id="group-label"></p>
-            <ul id="group-members" class="group-members"></ul>
-            <label class="plus-one">
-              <input type="checkbox" id="plus-one">
-              <span>I'm bringing a guest</span>
-            </label>
+          <!-- Reply for other people too — a plus-one, or the rest of the
+               family — each with their own answer, independent of yours, so
+               one person can come while another can't. -->
+          <div id="party" class="party">
+            <p class="party-label caps small">Replying for anyone else?</p>
+            <ul id="party-list" class="party-list"></ul>
+            <button type="button" id="add-person" class="link-button">+ Add a guest or family member</button>
           </div>
 
           <input type="text" name="website" id="website" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <button type="submit" id="rsvp-submit" class="button" hidden>Send our reply</button>
+          <button type="submit" id="rsvp-submit" class="button">Send our reply</button>
           <p id="rsvp-error" class="hint error" role="alert" hidden></p>
         </form>
         <div id="rsvp-done" hidden>
@@ -258,7 +252,7 @@
 
     <!-- ══ 5 · Closing ═════════════════════════════════════════ -->
     <section id="closing" class="panel closing">
-      <img class="cluster cluster-bl wide" src="assets/img/cluster-bottom-right.svg?v=34" alt="" aria-hidden="true" width="380" height="420" loading="lazy">
+      <img class="cluster cluster-bl wide" src="assets/img/cluster-bottom-right.svg?v=37" alt="" aria-hidden="true" width="380" height="420" loading="lazy">
       <div data-reveal>
         <div id="countdown" class="countdown" aria-label="Countdown to the engagement">
           <div class="count-unit"><span class="count-num" data-unit="days">–</span><span class="count-label caps small">days</span></div>
@@ -276,13 +270,13 @@
     </section>
   </main>
 
-  <script src="assets/js/envelope.js?v=34"></script>
-  <script src="assets/js/config.js?v=34"></script>
-  <script src="assets/js/lib.js?v=34"></script>
+  <script src="assets/js/envelope.js?v=37"></script>
+  <script src="assets/js/config.js?v=37"></script>
+  <script src="assets/js/lib.js?v=37"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script defer src="assets/js/motion.js?v=34"></script>
-  <script defer src="assets/js/rsvp.js?v=34"></script>
-  <script defer src="assets/js/countdown.js?v=34"></script>
+  <script defer src="assets/js/motion.js?v=37"></script>
+  <script defer src="assets/js/rsvp.js?v=37"></script>
+  <script defer src="assets/js/countdown.js?v=37"></script>
 </body>
 </html>
