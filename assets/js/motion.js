@@ -188,7 +188,17 @@
   // Rotation is reserved for this (parallax uses yPercent only), so the
   // two never fight over the same transform channel. Starts after the
   // hero entrance has fully settled.
-  gsap.utils.toArray('.cluster').forEach(function (el, i) {
+  // The mirrored anchors are excluded, for a reason worth recording: their
+  // `scale: -1 1` makes GSAP read their starting rotation as ~180 degrees, so
+  // a tween toward -1.8 sweeps a HALF TURN and yoyos it forever instead of
+  // swaying. Measured: 25 degrees of travel in 1.5s on #celebration, against
+  // under 1 degree for every cluster that isn't mirrored.
+  //
+  // Excluding them is also right on its own terms. The breeze pivots about
+  // '50% 0%' — the top edge — which is where a cluster hanging from above is
+  // attached. These two are anchored at the BOTTOM, so pivoting them from the
+  // top swings the end that should be rooted.
+  gsap.utils.toArray('.cluster:not(.cluster-bl)').forEach(function (el, i) {
     gsap.to(el, {
       rotation: i % 2 ? 1.8 : -1.8,
       transformOrigin: '50% 0%',
