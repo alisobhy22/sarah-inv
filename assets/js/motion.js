@@ -48,12 +48,16 @@
     var len = vinePath.getTotalLength();
     var frag = '';
     for (var i = 1; i <= 14; i++) {
-      var pt = vinePath.getPointAtLength(len * (i / 15));
+      var at = i / 15;
+      var pt = vinePath.getPointAtLength(len * at);
       var flip = i % 2 ? 1 : -1;
+      // data-at records where along the stroke this ornament sits, so it can
+      // bloom as the drawing head passes it rather than on its own viewport
+      // trigger — see the onUpdate below.
       if (i % 4 === 0) {
-        frag += '<circle class="vine-bud" data-vine-orn cx="' + pt.x + '" cy="' + pt.y + '" r="4"/>';
+        frag += '<circle class="vine-bud" data-vine-orn data-at="' + at + '" cx="' + pt.x + '" cy="' + pt.y + '" r="4"/>';
       } else {
-        frag += '<path class="vine-leaf" data-vine-orn d="M' + pt.x + ' ' + pt.y +
+        frag += '<path class="vine-leaf" data-vine-orn data-at="' + at + '" d="M' + pt.x + ' ' + pt.y +
           ' c ' + 8 * flip + ' -4, ' + 16 * flip + ' -2, ' + 20 * flip + ' 6' +
           ' c ' + -8 * flip + ' 4, ' + -16 * flip + ' 2, ' + -20 * flip + ' -6 Z"/>';
       }
@@ -62,17 +66,37 @@
 
     // Draw with scroll across the whole document.
     gsap.set(vinePath, { strokeDasharray: len, strokeDashoffset: len });
+
+    // Ornaments bloom off the SAME scroll progress that draws the stroke, so a
+    // leaf opens exactly as the line reaches it. Previously each had its own
+    // ScrollTrigger keyed to viewport position, which fired out of step with
+    // the drawing head — leaves appeared on bare paper ahead of the line.
+    var orns = gsap.utils.toArray('[data-vine-orn]').map(function (el) {
+      gsap.set(el, { scale: 0, transformOrigin: 'center' });
+      return { el: el, at: parseFloat(el.getAttribute('data-at')) };
+    });
+    var BLOOM = 0.05; // fraction of total scroll a single ornament takes to open
+
+    // gsap.set, not gsap.quickSetter: quickSetter writes style.transform, which
+    // these <circle>/<path> nodes ignore in favour of their transform ATTRIBUTE,
+    // so the ornaments stayed pinned at scale 0. gsap.set writes the attribute.
+    function bloom(progress) {
+      for (var i = 0; i < orns.length; i++) {
+        var t = (progress - orns[i].at) / BLOOM;
+        t = t < 0 ? 0 : t > 1 ? 1 : t;
+        gsap.set(orns[i].el, { scale: t * t * (3 - 2 * t), transformOrigin: 'center' });
+      }
+    }
+
     gsap.to(vinePath, {
       strokeDashoffset: 0,
       ease: 'none',
-      scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 0.6 }
-    });
-    // Each ornament scales in as it enters the lower viewport.
-    gsap.utils.toArray('[data-vine-orn]').forEach(function (el) {
-      gsap.from(el, {
-        scale: 0, transformOrigin: 'center', duration: 0.5,
-        scrollTrigger: { trigger: el, start: 'top 78%' }
-      });
+      scrollTrigger: {
+        trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 0.6,
+        onUpdate: function (self) { bloom(self.progress); },
+        // deep-link or restored scroll position: seed the correct state on load
+        onRefresh: function (self) { bloom(self.progress); }
+      }
     });
   }
   buildVine();
@@ -218,10 +242,16 @@
 
   // ── Section reveals ───────────────────────────────────────────
   function wireReveals() {
-    gsap.utils.toArray('main > section:not(#names) [data-reveal]').forEach(function (el) {
-      gsap.to(el, {
-        opacity: 1, y: 0, duration: 0.9, ease: 'power2.out',
-        scrollTrigger: { trigger: el, start: 'top 82%' }
+    // Reveal per SECTION, not per element. Triggering each element off its own
+    // position made a section arrive as a ragged trickle — the rule, then the
+    // heading, then the date, each on its own schedule. Grouping them behind
+    // one trigger with a stagger lands the section as a composed unit.
+    gsap.utils.toArray('main > section:not(#names)').forEach(function (sec) {
+      var els = sec.querySelectorAll('[data-reveal]');
+      if (!els.length) return;
+      gsap.to(els, {
+        opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', stagger: 0.1,
+        scrollTrigger: { trigger: sec, start: 'top 72%' }
       });
     });
 

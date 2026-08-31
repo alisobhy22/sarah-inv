@@ -1,50 +1,138 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 420" aria-hidden="true">
-  <defs><radialGradient id="gPink" cx="50%" cy="38%" r="72%"><stop offset="0%" stop-color="#F5D0DC"/><stop offset="55%" stop-color="#E9A9BC"/><stop offset="100%" stop-color="#D07E97"/></radialGradient><radialGradient id="gPale" cx="50%" cy="35%" r="75%"><stop offset="0%" stop-color="#F8E0E8"/><stop offset="60%" stop-color="#F0C3D0"/><stop offset="100%" stop-color="#DE9DB4"/></radialGradient><radialGradient id="gRose" cx="45%" cy="35%" r="75%"><stop offset="0%" stop-color="#D9718C"/><stop offset="100%" stop-color="#B44467"/></radialGradient><linearGradient id="gLeaf" x1="0" y1="0" x2="0.8" y2="1"><stop offset="0%" stop-color="#9CAC6E"/><stop offset="100%" stop-color="#79894C"/></linearGradient>
-    <filter id="wc" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="0.6"/>
+  <!--
+    Watercolour build-up, not flat vector shapes. Each bloom is three passes:
+      1. a full-size wash at low alpha  — the pigment body
+      2. an inset lighter wash          — leaves the first pass showing as a
+                                          darker rim, the way pigment pools at
+                                          a drying edge
+      3. hairline veins at low alpha    — the brush detail
+    The organic edge comes from paintA/B/C: fractal turbulence driving a
+    displacement map, so no petal outline is a clean bezier. Three seeds, applied
+    per <use> below rather than inside the symbols, so repeated blooms don't
+    share an identical silhouette.
+    No grain filter here on purpose — .texture in style.css already lays a
+    turbulence grain over the whole page at z-index 3.
+  -->
+  <defs>
+    <radialGradient id="gPink" cx="46%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#FBE6EE"/><stop offset="42%" stop-color="#F0BDCE"/>
+      <stop offset="78%" stop-color="#DE9BB2"/><stop offset="100%" stop-color="#C87E99"/>
+    </radialGradient>
+    <radialGradient id="gPale" cx="48%" cy="28%" r="80%">
+      <stop offset="0%" stop-color="#FDF1F5"/><stop offset="50%" stop-color="#F6D8E2"/>
+      <stop offset="100%" stop-color="#E3AFC2"/>
+    </radialGradient>
+    <radialGradient id="gHi" cx="45%" cy="26%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".92"/>
+      <stop offset="100%" stop-color="#FDEFF4" stop-opacity=".35"/>
+    </radialGradient>
+    <radialGradient id="gRose" cx="42%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#E08AA4"/><stop offset="60%" stop-color="#C75B77"/>
+      <stop offset="100%" stop-color="#A93A5D"/>
+    </radialGradient>
+    <linearGradient id="gLeaf" x1="0" y1="0" x2=".75" y2="1">
+      <stop offset="0%" stop-color="#A8B77C"/><stop offset="55%" stop-color="#8A9A5B"/>
+      <stop offset="100%" stop-color="#6C7B42"/>
+    </linearGradient>
+    <linearGradient id="gLeafHi" x1="0" y1="0" x2=".7" y2="1">
+      <stop offset="0%" stop-color="#C2CE9C" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="#9AA968" stop-opacity=".3"/>
+    </linearGradient>
+
+    <filter id="paintA" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="4" seed="7" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="3.6" xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="0.45"/>
     </filter>
+    <filter id="paintB" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.027" numOctaves="4" seed="23" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="3.1" xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="0.45"/>
+    </filter>
+    <filter id="paintC" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.019" numOctaves="3" seed="41" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="4.2" xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="0.5"/>
+    </filter>
+
+    <!-- unfilled so <use fill="..."> can colour each instance -->
+    <path id="petal" d="M0 0 C -9 -7, -10.5 -22, 0 -34 C 10.5 -22, 9 -7, 0 0 Z"/>
+    <path id="petalSm" d="M0 0 C -7.5 -5, -8.5 -16, 0 -26 C 8.5 -16, 7.5 -5, 0 0 Z"/>
+    <path id="leafBlade" d="M0 0 C 9 -5, 18 -3, 23 7 C 14 12, 5 9, 0 0 Z"/>
+
     <g id="orchid">
-      <ellipse cx="0" cy="-16" rx="9" ry="17" fill="url(#gPink)" opacity="0.85" filter="url(#wc)"/>
-      <ellipse cx="-14" cy="-2" rx="9" ry="17" fill="url(#gPink)" opacity="0.8" transform="rotate(-65)" filter="url(#wc)"/>
-      <ellipse cx="14" cy="-2" rx="9" ry="17" fill="url(#gPink)" opacity="0.8" transform="rotate(65)" filter="url(#wc)"/>
-      <ellipse cx="-8" cy="9" rx="8" ry="13" fill="url(#gPale)" opacity="0.85" transform="rotate(-30)" filter="url(#wc)"/>
-      <ellipse cx="8" cy="9" rx="8" ry="13" fill="url(#gPale)" opacity="0.85" transform="rotate(30)" filter="url(#wc)"/>
-      <path d="M0 2 C -5 8, -3 14, 0 16 C 3 14, 5 8, 0 2 Z" fill="url(#gRose)"/>
-      <circle cx="0" cy="1" r="3.4" fill="#BE3D6B"/>
+      <g opacity=".92">
+        <use href="#petal" fill="url(#gPink)" opacity=".64"/>
+        <use href="#petal" fill="url(#gPink)" opacity=".6" transform="rotate(-74)"/>
+        <use href="#petal" fill="url(#gPink)" opacity=".6" transform="rotate(74)"/>
+        <use href="#petalSm" fill="url(#gPale)" opacity=".68" transform="rotate(-38)"/>
+        <use href="#petalSm" fill="url(#gPale)" opacity=".68" transform="rotate(38)"/>
+      </g>
+      <g opacity=".3">
+        <use href="#petal" fill="url(#gHi)" transform="scale(.6) translate(0 -2)"/>
+        <use href="#petal" fill="url(#gHi)" transform="rotate(-74) scale(.56)"/>
+        <use href="#petal" fill="url(#gHi)" transform="rotate(74) scale(.56)"/>
+      </g>
+      <g stroke="#C97E98" stroke-width=".55" fill="none" opacity=".3" stroke-linecap="round">
+        <path d="M0 -4 C -1 -14, 1 -24, 0 -31"/>
+        <path d="M0 -4 C -1 -14, 1 -24, 0 -31" transform="rotate(-74)"/>
+        <path d="M0 -4 C -1 -14, 1 -24, 0 -31" transform="rotate(74)"/>
+      </g>
+      <path d="M0 2 C -6.5 9, -4.5 17, 0 19.5 C 4.5 17, 6.5 9, 0 2 Z" fill="url(#gRose)" opacity=".82"/>
+      <path d="M0 5 C -3 10, -2 15, 0 16.5 C 2 15, 3 10, 0 5 Z" fill="#A93A5D" opacity=".38"/>
+      <circle cx="0" cy="1" r="3.1" fill="#BE3D6B" opacity=".9"/>
+      <circle cx="-.8" cy="0" r="1.1" fill="#FBE6EE" opacity=".75"/>
     </g>
+
     <g id="calla">
-      <path d="M0 30 C -1 16, -2 6, 0 0" stroke="#8A9A5B" stroke-width="2.4" fill="none"/>
-      <path d="M0 2 C -12 -6, -10 -24, 0 -30 C 6 -22, 10 -8, 3 3 Z" fill="url(#gRose)" opacity="0.85" filter="url(#wc)"/>
-      <path d="M0 0 C -6 -8, -5 -18, 0 -24" stroke="#BE3D6B" stroke-width="1.6" fill="none" opacity="0.7"/>
+      <path d="M0 32 C -1 17, -2 6, 0 0" stroke="#8A9A5B" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M0 3 C -13 -6, -11 -25, 0 -32 C 7 -23, 11 -8, 3.5 3.5 Z" fill="url(#gRose)" opacity=".78"/>
+      <path d="M0 0 C -8 -7, -7 -20, 0 -25 C 4 -18, 6 -8, 2 1 Z" fill="url(#gPale)" opacity=".5"/>
+      <path d="M0 -1 C -5 -8, -4.5 -17, 0 -22" stroke="#BE3D6B" stroke-width="1.3" fill="none" opacity=".55" stroke-linecap="round"/>
     </g>
+
     <g id="anthurium">
-      <path d="M0 -22 C 16 -18, 18 4, 4 18 C 0 22, -4 20, -6 14 C -16 2, -12 -18, 0 -22 Z" fill="url(#gPale)" opacity="0.75" filter="url(#wc)"/>
-      <path d="M0 -22 C 16 -18, 18 4, 4 18" stroke="#E9A9BC" stroke-width="1.2" fill="none"/>
-      <path d="M-1 -18 L 1 8" stroke="#C75B77" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M0 -23 C 17 -19, 19 4, 4 19 C 0 23, -4 21, -6.5 15 C -17 2, -13 -19, 0 -23 Z" fill="url(#gPale)" opacity=".76"/>
+      <path d="M0 -18 C 12 -14, 13 3, 3 14 C 0 17, -3 15, -5 11 C -12 1, -9 -15, 0 -18 Z" fill="url(#gHi)" opacity=".45"/>
+      <path d="M0 -23 C 17 -19, 19 4, 4 19" stroke="#E3AFC2" stroke-width="1.1" fill="none" opacity=".7"/>
+      <path d="M-1 -19 L 1 9" stroke="#C75B77" stroke-width="2.5" stroke-linecap="round" opacity=".85"/>
+      <path d="M-1 -19 L 1 9" stroke="#FBE6EE" stroke-width=".9" stroke-linecap="round" opacity=".5"/>
     </g>
+
     <g id="amaranthus">
-      <path d="M0 0 C 2 24, -2 46, 1 70" stroke="#8A9A5B" stroke-width="1.6" fill="none"/>
-      <g fill="url(#gLeaf)" opacity="0.75">
-        <circle cx="-2" cy="8" r="2.6"/><circle cx="3" cy="14" r="2.6"/><circle cx="-1" cy="21" r="2.6"/>
-        <circle cx="2" cy="28" r="2.4"/><circle cx="-2" cy="35" r="2.4"/><circle cx="2" cy="42" r="2.2"/>
+      <path d="M0 0 C 2 24, -2 46, 1 70" stroke="#8A9A5B" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <g fill="url(#gLeaf)" opacity=".76">
+        <circle cx="-2" cy="8" r="2.8"/><circle cx="3" cy="14" r="2.8"/><circle cx="-1" cy="21" r="2.7"/>
+        <circle cx="2" cy="28" r="2.5"/><circle cx="-2" cy="35" r="2.5"/><circle cx="2" cy="42" r="2.3"/>
         <circle cx="-1" cy="49" r="2.2"/><circle cx="1" cy="56" r="2"/><circle cx="0" cy="63" r="1.8"/>
       </g>
-    </g>
-    <g id="blossom">
-      <g fill="url(#gPink)" opacity="0.9">
-        <ellipse cx="0" cy="-4" rx="2.6" ry="4"/>
-        <ellipse cx="-4" cy="1" rx="2.6" ry="4" transform="rotate(-70)"/>
-        <ellipse cx="4" cy="1" rx="2.6" ry="4" transform="rotate(70)"/>
-        <ellipse cx="-2.5" cy="4" rx="2.6" ry="4" transform="rotate(-140)"/>
-        <ellipse cx="2.5" cy="4" rx="2.6" ry="4" transform="rotate(140)"/>
+      <g fill="#C2CE9C" opacity=".4">
+        <circle cx="-2.7" cy="7.3" r="1.1"/><circle cx="2.3" cy="13.3" r="1.1"/>
+        <circle cx="-1.7" cy="20.3" r="1"/><circle cx="1.3" cy="27.3" r=".9"/>
+        <circle cx="-2.7" cy="34.3" r=".9"/><circle cx="1.3" cy="41.3" r=".8"/>
       </g>
-      <circle r="1.6" fill="url(#gRose)"/>
     </g>
+
+    <g id="blossom">
+      <g fill="url(#gPink)" opacity=".82">
+        <ellipse cx="0" cy="-4.2" rx="2.8" ry="4.2"/>
+        <ellipse cx="-4.2" cy="1" rx="2.8" ry="4.2" transform="rotate(-70)"/>
+        <ellipse cx="4.2" cy="1" rx="2.8" ry="4.2" transform="rotate(70)"/>
+        <ellipse cx="-2.6" cy="4.2" rx="2.8" ry="4.2" transform="rotate(-140)"/>
+        <ellipse cx="2.6" cy="4.2" rx="2.8" ry="4.2" transform="rotate(140)"/>
+      </g>
+      <circle r="1.7" fill="url(#gRose)" opacity=".85"/>
+      <circle r=".7" cy="-.4" fill="#FDF1F5" opacity=".7"/>
+    </g>
+
     <g id="leaf">
-      <path d="M0 0 C 8 -4, 16 -2, 20 6 C 12 10, 4 8, 0 0 Z" fill="url(#gLeaf)" opacity="0.8" filter="url(#wc)"/>
+      <use href="#leafBlade" fill="url(#gLeaf)" opacity=".76"/>
+      <use href="#leafBlade" fill="url(#gLeafHi)" transform="scale(.72) translate(2 1)"/>
+      <path d="M1 1 C 8 0, 15 2, 21 6" stroke="#6C7B42" stroke-width=".55" fill="none" opacity=".35" stroke-linecap="round"/>
     </g>
+
     <g id="sprig">
-      <path d="M0 0 C 4 -14, 2 -28, 6 -40" stroke="#8A9A5B" stroke-width="1.2" fill="none"/>
+      <path d="M0 0 C 4 -14, 2 -28, 6 -40" stroke="#8A9A5B" stroke-width="1.2" fill="none" stroke-linecap="round"/>
       <use href="#leaf" transform="translate(2 -12) scale(0.5)"/>
       <use href="#leaf" transform="translate(3 -24) scale(0.45) rotate(-30)"/>
       <use href="#leaf" transform="translate(5 -34) scale(0.4) rotate(20)"/>
@@ -52,28 +140,28 @@
   </defs>
 
   <!-- sprigs anchoring the heavy corner, fanning up and away from it -->
-  <use href="#sprig" transform="translate(350 90) rotate(155) scale(1.05)"/>
-  <use href="#sprig" transform="translate(295 70) rotate(130) scale(0.95)"/>
+  <use filter="url(#paintA)" href="#sprig" transform="translate(350 90) rotate(155) scale(1.05)"/>
+  <use filter="url(#paintB)" href="#sprig" transform="translate(295 70) rotate(130) scale(0.95)"/>
 
   <!-- amaranthus rising out of the corner -->
-  <use href="#amaranthus" transform="translate(340 120) scale(1.2) rotate(180)"/>
+  <use filter="url(#paintC)" href="#amaranthus" transform="translate(340 120) scale(1.2) rotate(180)"/>
 
   <!-- callas -->
-  <use href="#calla" transform="translate(120 300) scale(1.2) rotate(-50)"/>
-  <use href="#calla" transform="translate(330 300) scale(1.0) rotate(30)"/>
+  <use filter="url(#paintA)" href="#calla" transform="translate(120 300) scale(1.2) rotate(-50)"/>
+  <use filter="url(#paintB)" href="#calla" transform="translate(330 300) scale(1.0) rotate(30)"/>
 
   <!-- anthurium, tucked into the gap between the input (below, at mobile widths)
        and the input (above, at desktop widths) so it clears the form field either way -->
-  <use href="#anthurium" transform="translate(310 115) scale(1.1) rotate(15)"/>
+  <use filter="url(#paintC)" href="#anthurium" transform="translate(310 115) scale(1.1) rotate(15)"/>
 
   <!-- orchids, the focal blooms, mirroring the top-left weight -->
-  <use href="#orchid" transform="translate(260 280) scale(1.7)"/>
-  <use href="#orchid" transform="translate(180 340) scale(1.2) rotate(-25)"/>
+  <use filter="url(#paintA)" href="#orchid" transform="translate(260 280) scale(1.7)"/>
+  <use filter="url(#paintB)" href="#orchid" transform="translate(180 340) scale(1.2) rotate(-25)"/>
 
   <!-- blossom trail drifting along the bottom edge -->
-  <use href="#blossom" transform="translate(40 380) scale(0.8)"/>
-  <use href="#blossom" transform="translate(82 390) scale(1.1)"/>
-  <use href="#blossom" transform="translate(122 396) scale(0.7)"/>
-  <use href="#blossom" transform="translate(162 399) scale(1.0)"/>
-  <use href="#blossom" transform="translate(200 400) scale(0.9)"/>
+  <use filter="url(#paintC)" href="#blossom" transform="translate(40 380) scale(0.8)"/>
+  <use filter="url(#paintA)" href="#blossom" transform="translate(82 390) scale(1.1)"/>
+  <use filter="url(#paintB)" href="#blossom" transform="translate(122 396) scale(0.7)"/>
+  <use filter="url(#paintC)" href="#blossom" transform="translate(162 399) scale(1.0)"/>
+  <use filter="url(#paintA)" href="#blossom" transform="translate(200 400) scale(0.9)"/>
 </svg>

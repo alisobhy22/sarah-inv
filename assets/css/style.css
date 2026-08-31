@@ -41,14 +41,50 @@ body {
 main { position: relative; z-index: 2; }
 .panel {
   position: relative;
-  padding: 5rem 1.5rem;
-  max-width: 640px;
+  padding: var(--panel-pad, 5rem) 1.5rem;
+  max-width: var(--panel-w, 640px);
   margin: 0 auto;
   text-align: center;
 }
+/* Every section measuring exactly 640px is what made the page read as a
+   template. The measure now shifts per section — widest where the names need
+   air, narrowest where the closing should feel intimate — so the eye gets a
+   rhythm down the page instead of one repeated block. */
+#names       { --panel-w: 720px; }
+#celebration { --panel-w: 560px; --panel-pad: 4.5rem; }
+#location    { --panel-w: 600px; }
+#rsvp        { --panel-w: 640px; --panel-pad: 5.5rem; }
+#closing     { --panel-w: 520px; }
+
 .hero { min-height: 100svh; display: flex; align-items: center; justify-content: center; padding-top: 6rem; }
-.interlude { min-height: 26svh; padding-top: 2rem; padding-bottom: 2rem; }
+/* The interlude carries no text — only the hanging amaranthus. Letting it run
+   full-bleed gives the strands the whole width to fall through, and breaks the
+   column so the sections after it land fresh. */
+.interlude { min-height: 26svh; max-width: none; padding-top: 2rem; padding-bottom: 2rem; }
 .closing { padding-bottom: 7rem; }
+
+/* ── Card edge ──────────────────────────────────────────────────
+   Two hairlines inset from the viewport, the way an engraved invitation is
+   plate-marked. Fixed, so it frames the page rather than scrolling with it.
+   Sits above the florals (z 1) and the grain (z 3) — the florals bleeding
+   under it is the intent, as on a printed card trimmed through the art. */
+.page-frame {
+  position: fixed;
+  inset: 13px;
+  z-index: 4;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--olive) 24%, transparent);
+}
+.page-frame::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in srgb, var(--olive) 11%, transparent);
+}
+@media (max-width: 599px) {
+  .page-frame { inset: 8px; }
+  .page-frame::after { inset: 4px; }
+}
 
 /* ── Typography ─────────────────────────────────────────────────── */
 .caps {
@@ -241,6 +277,19 @@ main { position: relative; z-index: 2; }
   letter-spacing: 0.08em;
   color: var(--olive);
   font-variant-numeric: tabular-nums;
+  display: inline-block; /* so the roll transform below applies */
+}
+/* Digits roll in from above as they change rather than snapping. Deliberately
+   plain CSS, not GSAP: countdown.js carries no GSAP dependency, so the seconds
+   keep ticking with their animation even if the CDN never loads. */
+@keyframes count-roll {
+  0%   { transform: translateY(-0.42em); opacity: 0; }
+  55%  { opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.count-num.roll { animation: count-roll 0.42s cubic-bezier(.2,.7,.3,1); }
+@media (prefers-reduced-motion: reduce) {
+  .count-num.roll { animation: none; }
 }
 .closing-message { max-width: 30ch; margin: 1.4rem auto; font-size: 1.1rem; }
 
