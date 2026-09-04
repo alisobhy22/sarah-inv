@@ -145,15 +145,12 @@ main { position: relative; z-index: 2; }
 }
 .date-line .date-day { color: var(--rose); font-size: 1.25em; }
 .bar { color: color-mix(in srgb, var(--olive) 45%, transparent); margin: 0 0.35em; }
+/* The mark is one path referenced by <use>, so the colour has to be set on
+   the <use> itself — CSS cannot reach inside the cloned symbol. */
+.mark-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .monogram { width: 96px; height: auto; margin: 0 auto; display: block; }
-.monogram.small { width: 64px; margin-top: 2.2rem; }
-.mono-letter {
-  font-family: var(--font-display);
-  font-size: 58px;
-  fill: var(--rose);
-  stroke: var(--rose);
-  stroke-width: 0.6;
-}
+.monogram.small { width: 58px; margin-top: 2.2rem; }
+.monogram use, .env-card-mono use { fill: var(--rose); }
 .body-note { max-width: 34ch; margin: 1rem auto; }
 
 /* ── Cards ──────────────────────────────────────────────────────── */
@@ -504,7 +501,7 @@ html.motion { scroll-behavior: auto; }
 .hero .names-block { margin: 0.9rem 0; }
 .hero .script-word { margin: 0.3rem 0; }
 .hero .surname { margin: 0.3rem 0 0.7rem; }
-.hero .monogram { width: 82px; }
+.hero .monogram { width: 74px; }
 
 @media (max-height: 860px) {
   .panel.hero { padding-top: 2.6rem; padding-bottom: 2.6rem; }
@@ -513,7 +510,7 @@ html.motion { scroll-behavior: auto; }
   .hero .first-name { font-size: clamp(2.1rem, 7.5vw, 3.3rem); }
   .hero .script-word { font-size: clamp(2.3rem, 9vw, 3.5rem); }
   .hero .amp { font-size: 2rem; }
-  .hero .monogram { width: 68px; }
+  .hero .monogram { width: 62px; }
 }
 
 /* ── Watercolour washes ─────────────────────────────────────────────
@@ -779,8 +776,7 @@ html.gated body { overflow: hidden; }
 .wax-inner { fill: color-mix(in srgb, var(--magenta) 82%, #fff); }
 .wax-shine { fill: #fff; opacity: 0.17; }
 .wax-lip { fill: #fff; opacity: 0.28; }
-.wax-letter { fill: color-mix(in srgb, var(--magenta) 55%, #000); opacity: 0.62; }
-.wax-lip, .wax-letter { font-family: var(--font-display); font-size: 42px; }
+.wax-letter { fill: color-mix(in srgb, var(--magenta) 45%, #000); opacity: 0.8; }
 
 .seal-hint {
   color: color-mix(in srgb, var(--olive) 80%, transparent);

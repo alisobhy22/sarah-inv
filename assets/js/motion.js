@@ -136,7 +136,7 @@
   // ── Hero: bouquet unfold (plays exactly once, on load) ─────────
   function wireHeroEntrance() {
     var tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-    tl.from('.monogram .mono-letter', { opacity: 0, y: 10, stagger: 0.2, duration: 0.9 })
+    tl.from('.monogram use', { opacity: 0, y: 10, duration: 1.1 })
       .to('.hero .cluster', { opacity: 1, duration: 1.2 }, '-=0.4')
       // Pixel `y`, NOT yPercent. yPercent belongs to the parallax scrub, and
       // wireParallax() builds its trigger while this entrance is still in
@@ -171,7 +171,7 @@
   // Pins the hero elements at their settled, fully-revealed state. Used
   // on a width-change rebuild so the one-time entrance never replays.
   function setHeroFinal() {
-    gsap.set('.monogram .mono-letter', { opacity: 1, y: 0 });
+    gsap.set('.monogram use', { opacity: 1, y: 0 });
     gsap.set('.hero .cluster', { opacity: 1 });
     gsap.set('.cluster-tl', { xPercent: 0, y: 0, rotation: 0 });   // y, not yPercent — see above
     gsap.set('.cluster-r', { xPercent: 0, rotation: 0 });
